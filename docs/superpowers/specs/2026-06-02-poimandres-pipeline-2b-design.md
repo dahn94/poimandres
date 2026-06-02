@@ -24,10 +24,14 @@ real. A afinação fina dos prompts é uma **fase iterativa** contra os evals, n
 
 Implementa o mesmo `LLMBackend` do 2a (`gerar(PedidoLLM) -> str`), via SDK `anthropic`.
 
-- **Portabilidade (decisão):** a interface continua devolvendo **texto**; a saída estruturada é obtida
-  por **prompt + prefill de `{`** (não tool-use), de modo que o backend permaneça trocável por um
-  modelo local no futuro (lei da pluggabilidade da spec §6). O `parsing.py` estrito + o loop de retry
-  já tratam JSON malformado.
+- **Portabilidade (decisão, corrigida):** a interface continua devolvendo **texto**; a saída
+  estruturada é obtida por **structured outputs** (`output_config.format` com um JSON schema), não
+  por prefill (prefill na última fala do assistente **retorna 400** em Opus 4.8 / Sonnet 4.6) nem por
+  tool-use (que amarraria a modelos com tool-use). O `PedidoLLM` ganha um campo opcional
+  `schema: dict | None`: o `ClaudeLLM` o usa via `output_config.format` (Claude garante JSON válido
+  contra o schema); um backend local futuro pode embutir o mesmo schema no prompt. O `parsing.py`
+  estrito + o loop de retry seguem como rede de segurança. Estruturados são suportados em Opus 4.8 /
+  Sonnet 4.6 e convivem com adaptive thinking.
 - **Modelo por injeção:** instâncias distintas — `ClaudeLLM(opus)` injetada no Compositor;
   `ClaudeLLM(sonnet)` no Discernidor e no juiz do Verificador. A unidade não conhece o modelo; o
   *dependency injection* (no factory, §5) decide. Modelos: Opus 4.8 (`claude-opus-4-8`) para o
