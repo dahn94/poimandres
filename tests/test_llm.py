@@ -9,7 +9,7 @@ def test_fakellm_devolve_respostas_em_ordem_e_registra_chamadas():
     p2 = PedidoLLM(sistema="s", usuario="u2")
     assert llm.gerar(p1) == "primeira"
     assert llm.gerar(p2) == "segunda"
-    assert [c.usuario for c in llm.chamadas] == ["u1", "u2"]
+    assert llm.chamadas == [p1, p2]
 
 
 def test_fakellm_esgotado_falha_alto():
