@@ -46,3 +46,31 @@ def test_retry_inclui_violacoes_no_pedido():
     llm = FakeLLM([_RESP])
     Compositor(llm).compor(_DISC, _REC, violacoes=["citação inexistente: x"])
     assert "citação inexistente: x" in llm.chamadas[0].usuario
+
+
+def test_compositor_envia_schema_estruturado():
+    llm = FakeLLM([_RESP])
+    Compositor(llm).compor(_DISC, _REC)
+    pedido = llm.chamadas[0]
+    assert pedido.schema is not None
+    assert "afirmacoes" in pedido.schema["properties"]
+
+
+def test_compositor_inclui_iluminantes_no_pedido():
+    rec = Recuperacao(
+        fundantes=_REC.fundantes,
+        iluminantes=[
+            Passagem(
+                id="coment-15",
+                ref_canonica="Coment. §15",
+                texto="o homem duplo na tradição órfica",
+                proveniencia=Proveniencia.ERUDICAO,
+                obra="Comentário",
+            )
+        ],
+    )
+    llm = FakeLLM([_RESP])
+    Compositor(llm).compor(_DISC, rec)
+    usuario = llm.chamadas[0].usuario
+    assert "ILUMINANTES" in usuario
+    assert "coment-15" in usuario

@@ -17,18 +17,53 @@ from poimandres.pipeline.parsing import bool_ou_default
 from poimandres.pipeline.tipos import (
     Afirmacao,
     Discernimento,
+    Movimento,
     RascunhoRevelacao,
     Recuperacao,
 )
 
 
 _SISTEMA = (
-    "Você é o Mestre, que conduz como Hermes conduz Tat. Componha uma resposta "
-    "fundada SOMENTE nas passagens fundantes fornecidas; toda afirmação doutrinal "
-    "deve trazer o citacao_id da passagem que a sustenta. Pode devolver uma "
-    "pergunta em vez de revelar. Devolva um JSON: {texto, afirmacoes:[{frase,"
-    "citacao_id}], devolveu:bool, genero_declarado:bool}."
+    "Você é o MESTRE de um oráculo hermético clássico, que conduz como Hermes "
+    "conduz Tat: sonda, devolve, revela por graus, pode adiar. Leis invioláveis:\n"
+    "1. FUNDAR só nas passagens FUNDANTES dadas; toda afirmação doutrinal traz o "
+    "citacao_id da fundante que a sustenta. Nunca funde no que não foi dado.\n"
+    "2. GRAU: revele apenas até a profundidade que a Disposição autoriza (use o "
+    "grau e as 4 marcas como leitura, não como nota); guarde/adie o mais alto, "
+    "aponte o caminho sem despejar.\n"
+    "3. LÍNGUA: se lingua_ausente, entre pela Imagem, depois Nomeie o termo, "
+    "depois Glose — guardando do anacronismo.\n"
+    "4. ILUMINANTES (erudição) só ILUMINAM, marcadas como tal; jamais fundam.\n"
+    "5. Pode DEVOLVER uma pergunta/Movimento em vez de revelar (devolveu=true, "
+    "movimentos=[...]).\n"
+    "6. Se houver só suporte técnico (so_tecnico), DECLARE o gênero "
+    "(genero_declarado=true) em vez de tratá-lo como doutrina.\n"
+    "Devolva JSON: {texto, afirmacoes:[{frase,citacao_id}], movimentos:[...], "
+    "devolveu, genero_declarado}."
 )
+
+_AFIRMACAO_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "frase": {"type": "string"},
+        "citacao_id": {"type": "string"},
+    },
+    "required": ["frase", "citacao_id"],
+    "additionalProperties": False,
+}
+
+_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "texto": {"type": "string"},
+        "afirmacoes": {"type": "array", "items": _AFIRMACAO_SCHEMA},
+        "movimentos": {"type": "array", "items": {"type": "string"}},
+        "devolveu": {"type": "boolean"},
+        "genero_declarado": {"type": "boolean"},
+    },
+    "required": ["texto", "afirmacoes", "movimentos", "devolveu", "genero_declarado"],
+    "additionalProperties": False,
+}
 
 
 class Compositor:
@@ -53,23 +88,31 @@ class Compositor:
                 anexadas ao pedido para o Mestre refazer.
         """
         fundantes = "\n".join(f"{p.id}: {p.texto}" for p in recuperacao.fundantes)
-        # iluminantes são recuperados para o Compositor TECER a iluminação no Plano 2b; o prompt do 2a usa só as fundantes.
+        iluminantes = "\n".join(
+            f"{p.id} ({p.obra}): {p.texto}" for p in recuperacao.iluminantes
+        )
         usuario = (
-            f"grau={discernimento.grau} registro={discernimento.registro}\n"
+            f"grau={discernimento.grau} registro={discernimento.registro} "
+            f"lingua_ausente={discernimento.lingua_ausente}\n"
             f"silencio={recuperacao.silencio} so_tecnico={recuperacao.so_tecnico}\n"
-            f"FUNDANTES:\n{fundantes}"
+            f"FUNDANTES (podem fundar):\n{fundantes}\n"
+            f"ILUMINANTES (só iluminam, nunca fundam):\n{iluminantes}"
         )
         if violacoes:
             usuario += "\n[REFAÇA — violações: " + "; ".join(violacoes) + "]"
-        bruto = self._llm.gerar(PedidoLLM(sistema=_SISTEMA, usuario=usuario))
+        bruto = self._llm.gerar(
+            PedidoLLM(sistema=_SISTEMA, usuario=usuario, schema=_SCHEMA)
+        )
         dados = json.loads(bruto)
         afirmacoes = [
             Afirmacao(frase=a["frase"], citacao_id=a["citacao_id"])
             for a in dados.get("afirmacoes", [])
         ]
+        movimentos = [Movimento(pedido=m) for m in dados.get("movimentos", [])]
         return RascunhoRevelacao(
             texto=str(dados["texto"]),
             afirmacoes=afirmacoes,
+            movimentos=movimentos,
             devolveu=bool_ou_default(dados, "devolveu", False),
             genero_declarado=bool_ou_default(dados, "genero_declarado", False),
         )
