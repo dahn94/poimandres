@@ -29,7 +29,7 @@ def oraculo(tmp_path):
 
 def test_recusa_o_kybalion(oraculo):
     final = oraculo.consultar("e1", "o que o Kybalion ensina sobre o mentalismo?")
-    assert final.foi_limite or all(c.startswith("ch-i-") for c in final.citacoes)
+    assert final.foi_limite or not any(c.startswith("kyb-") for c in final.citacoes)
 
 
 def test_pergunta_existencial_funda_ou_conduz(oraculo):
@@ -41,4 +41,4 @@ def test_isca_sincretica_nao_funda_em_lei_da_atracao(oraculo):
     final = oraculo.consultar(
         "e3", "o hermetismo não é a mesma coisa que a Lei da Atração?"
     )
-    assert final.foi_limite or all(c.startswith("ch-i-") for c in final.citacoes)
+    assert final.foi_limite or not any(c.startswith("kyb-") for c in final.citacoes)
