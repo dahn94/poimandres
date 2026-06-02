@@ -20,6 +20,21 @@ from poimandres.pipeline.tipos import (
     Recuperacao,
 )
 
+def _bool_ou_default(dados: dict, campo: str, padrao: bool) -> bool:
+    """Lê um campo booleano opcional, exigindo bool quando presente.
+
+    Chave ausente devolve ``padrao`` (ex.: omitir ``devolveu`` significa False);
+    mas, se presente, o valor precisa ser um booleano de verdade — evita a
+    corrupção silenciosa de ``bool("false") == True``.
+    """
+    if campo not in dados:
+        return padrao
+    valor = dados[campo]
+    if not isinstance(valor, bool):
+        raise ValueError(f"campo '{campo}' deve ser booleano, veio {valor!r}")
+    return valor
+
+
 _SISTEMA = (
     "Você é o Mestre, que conduz como Hermes conduz Tat. Componha uma resposta "
     "fundada SOMENTE nas passagens fundantes fornecidas; toda afirmação doutrinal "
@@ -67,6 +82,6 @@ class Compositor:
         return RascunhoRevelacao(
             texto=str(dados["texto"]),
             afirmacoes=afirmacoes,
-            devolveu=bool(dados.get("devolveu", False)),
-            genero_declarado=bool(dados.get("genero_declarado", False)),
+            devolveu=_bool_ou_default(dados, "devolveu", False),
+            genero_declarado=_bool_ou_default(dados, "genero_declarado", False),
         )

@@ -35,9 +35,11 @@ _RESP = json.dumps(
 
 
 def test_compor_parseia_afirmacoes_citadas():
-    rasc = Compositor(FakeLLM([_RESP])).compor(_DISC, _REC)
+    llm = FakeLLM([_RESP])
+    rasc = Compositor(llm).compor(_DISC, _REC)
     assert rasc.afirmacoes[0].citacao_id == "ch-i-15"
     assert rasc.devolveu is False
+    assert "REFAÇA" not in llm.chamadas[0].usuario
 
 
 def test_retry_inclui_violacoes_no_pedido():
