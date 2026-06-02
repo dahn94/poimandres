@@ -1,4 +1,7 @@
+import json
+
 from poimandres.domain import Passagem, Proveniencia
+from poimandres.pipeline.llm import FakeLLM
 from poimandres.pipeline.tipos import Afirmacao, RascunhoRevelacao, Recuperacao
 from poimandres.pipeline.verificador import Verificador
 
@@ -57,11 +60,6 @@ def test_reprova_so_tecnico_sem_declarar_genero():
     v = Verificador().verificar(rasc, _rec(silencio=True, so_tecnico=True))
     assert v.aprovado is False
     assert any("gênero" in viol.lower() for viol in v.violacoes)
-
-
-import json
-
-from poimandres.pipeline.llm import FakeLLM
 
 
 def test_juiz_nao_e_chamado_quando_deterministico_ja_reprova():

@@ -84,7 +84,7 @@ class Verificador:
         """Consulta o juiz-LLM sobre entailment/anacronismo/gênero das afirmações."""
         por_id = {p.id: p.texto for p in recuperacao.fundantes}
         pares = "\n".join(
-            f"- FRASE: {af.frase}\n  PASSAGEM ({af.citacao_id}): {por_id.get(af.citacao_id, '')}"
+            f"- FRASE: {af.frase}\n  PASSAGEM ({af.citacao_id}): {por_id[af.citacao_id]}"
             for af in rascunho.afirmacoes
         )
         bruto = self._juiz.gerar(
