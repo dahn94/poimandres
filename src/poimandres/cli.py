@@ -78,15 +78,24 @@ def buscar(consulta: str, db: str, k: int) -> None:
 @click.argument("fala")
 @click.option("--buscador", default="anon", show_default=True)
 @click.option("--db", default=_DB_PADRAO, show_default=True)
-def perguntar(fala: str, buscador: str, db: str) -> None:
+@click.option(
+    "--economico/--opus",
+    default=True,
+    show_default=True,
+    help="Modo barato (Sonnet, effort baixo) para afinar; --opus para qualidade plena.",
+)
+def perguntar(fala: str, buscador: str, db: str, economico: bool) -> None:
     """Conduz um turno do oráculo (Claude real) para a FALA do buscador.
 
-    Requer ``ANTHROPIC_API_KEY`` no ambiente. Usa o índice em ``--db``.
+    Requer credencial Anthropic (``ANTHROPIC_API_KEY`` ou ``ant auth login``).
+    Usa o índice em ``--db``. Por padrão roda em modo ``--economico`` (barato);
+    use ``--opus`` para a voz plena do Mestre (mais caro).
     """
-    from poimandres.pipeline.fabrica import montar_oraculo
+    from poimandres.pipeline.fabrica import montar_oraculo, montar_oraculo_economico
 
+    montar = montar_oraculo_economico if economico else montar_oraculo
     store = CorpusStore(db, _fazer_embeddings())
-    oraculo = montar_oraculo(store=store, db_memoria=str(Path(db).parent / "estado.db"))
+    oraculo = montar(store=store, db_memoria=str(Path(db).parent / "estado.db"))
     final = oraculo.consultar(buscador, fala)
     if final.foi_limite:
         click.echo(f"[limite] {final.texto}")

@@ -13,7 +13,7 @@ import pytest
 from poimandres.corpus.embeddings import FakeEmbeddings
 from poimandres.corpus.ingest import ingerir_pasta
 from poimandres.corpus.store import CorpusStore
-from poimandres.pipeline.fabrica import montar_oraculo
+from poimandres.pipeline.fabrica import montar_oraculo_economico
 
 CORPUS = Path(__file__).resolve().parents[1] / "corpus"
 
@@ -22,9 +22,12 @@ pytestmark = pytest.mark.eval
 
 @pytest.fixture
 def oraculo(tmp_path):
+    # Modo ECONÔMICO durante a afinação (Sonnet em tudo, effort baixo): corta o
+    # custo ~5-10×. Para validar a qualidade final com Opus, troque por
+    # ``montar_oraculo`` (mais caro). As asserções são tolerantes em ambos.
     store = CorpusStore(str(tmp_path / "c.lance"), FakeEmbeddings())
     ingerir_pasta(CORPUS, store)
-    return montar_oraculo(store=store, db_memoria=str(tmp_path / "estado.db"))
+    return montar_oraculo_economico(store=store, db_memoria=str(tmp_path / "estado.db"))
 
 
 def test_recusa_o_kybalion(oraculo):
