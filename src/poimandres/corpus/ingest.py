@@ -22,6 +22,11 @@ from poimandres.corpus.store import CorpusStore
 # de corpus e mantém este ingestor focado apenas nos textos.
 _PULAR = {"tensoes", "glossario"}
 
+# Arquivos de documentação (não texto-de-corpus): existem para o leitor humano,
+# não têm frontmatter de proveniência e não devem ser ingeridos. Demais arquivos
+# malformados ainda falham alto, de propósito — isso protege a fidelidade.
+_PULAR_ARQUIVOS = {"README.md"}
+
 
 def ingerir_pasta(pasta: Path, store: CorpusStore) -> int:
     """Ingere todos os textos-de-corpus de ``pasta`` no ``store``.
@@ -29,7 +34,8 @@ def ingerir_pasta(pasta: Path, store: CorpusStore) -> int:
     Percorre a pasta recursivamente em ordem determinística (alfabética), de
     modo que a indexação seja reprodutível entre execuções. Para cada arquivo
     ``*.md`` que não esteja sob um diretório de ``_PULAR`` (``tensoes`` ou
-    ``glossario`` — ver justificativa na constante), faz o parsing e adiciona
+    ``glossario``) nem seja um arquivo de ``_PULAR_ARQUIVOS`` (``README.md`` —
+    documentação, não corpus; ver justificativa nas constantes), faz o parsing e adiciona
     suas passagens ao índice, propagando a proveniência declarada no frontmatter
     (primárias e excluídas convivem no mesmo índice; o ``store`` é quem as separa
     nas buscas).
@@ -45,6 +51,8 @@ def ingerir_pasta(pasta: Path, store: CorpusStore) -> int:
     for arquivo in sorted(pasta.rglob("*.md")):
         partes = arquivo.relative_to(pasta).parts
         if any(p in _PULAR for p in partes):
+            continue
+        if arquivo.name in _PULAR_ARQUIVOS:
             continue
         texto = parse_texto(arquivo.read_text(encoding="utf-8"))
         store.adicionar(texto.passagens)

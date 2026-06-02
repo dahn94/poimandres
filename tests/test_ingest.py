@@ -29,6 +29,8 @@ def _corpus(tmp_path):
     # estes diretórios devem ser PULADOS neste plano:
     (tmp_path / "tensoes").mkdir()
     (tmp_path / "tensoes" / "heimarmene.md").write_text("pares\n", encoding="utf-8")
+    # documentação da pasta: não é texto-de-corpus, não tem frontmatter.
+    (tmp_path / "README.md").write_text("# corpus/\n\ndocumentação\n", encoding="utf-8")
     return tmp_path
 
 
