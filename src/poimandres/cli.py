@@ -72,3 +72,27 @@ def buscar(consulta: str, db: str, k: int) -> None:
         return
     for r in resultados:
         click.echo(f"[{r.passagem.ref_canonica}] {r.passagem.texto[:120]}")
+
+
+@cli.command()
+@click.argument("fala")
+@click.option("--buscador", default="anon", show_default=True)
+@click.option("--db", default=_DB_PADRAO, show_default=True)
+def perguntar(fala: str, buscador: str, db: str) -> None:
+    """Conduz um turno do oráculo (Claude real) para a FALA do buscador.
+
+    Requer ``ANTHROPIC_API_KEY`` no ambiente. Usa o índice em ``--db``.
+    """
+    from poimandres.pipeline.fabrica import montar_oraculo
+
+    store = CorpusStore(db, _fazer_embeddings())
+    oraculo = montar_oraculo(store=store, db_memoria=".poimandres/estado.db")
+    final = oraculo.consultar(buscador, fala)
+    if final.foi_limite:
+        click.echo(f"[limite] {final.texto}")
+    else:
+        click.echo(final.texto)
+        for cit in final.citacoes:
+            click.echo(f"  — funda em {cit}")
+        for mov in final.movimentos:
+            click.echo(f"  → {mov}")
