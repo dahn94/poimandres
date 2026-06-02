@@ -86,7 +86,7 @@ def perguntar(fala: str, buscador: str, db: str) -> None:
     from poimandres.pipeline.fabrica import montar_oraculo
 
     store = CorpusStore(db, _fazer_embeddings())
-    oraculo = montar_oraculo(store=store, db_memoria=".poimandres/estado.db")
+    oraculo = montar_oraculo(store=store, db_memoria=str(Path(db).parent / "estado.db"))
     final = oraculo.consultar(buscador, fala)
     if final.foi_limite:
         click.echo(f"[limite] {final.texto}")

@@ -19,5 +19,4 @@ def test_monta_oraculo_com_backend_injetado(tmp_path):
         fazer_llm=fazer_llm,
     )
     assert isinstance(oraculo, Oraculo)
-    assert "claude-opus-4-8" in criados
-    assert "claude-sonnet-4-6" in criados
+    assert criados == ["claude-sonnet-4-6", "claude-opus-4-8", "claude-sonnet-4-6"]
