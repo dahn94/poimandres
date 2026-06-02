@@ -27,7 +27,7 @@ def montar_oraculo(
     store: CorpusStore,
     db_memoria: str,
     fazer_llm: Callable[[str], LLMBackend] = ClaudeLLM,
-    max_retries: int = 2,
+    max_retries: int = 3,
 ) -> Oraculo:
     """Constrói um :class:`Oraculo` pronto para responder com Claude.
 

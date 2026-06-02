@@ -18,10 +18,13 @@ from poimandres.pipeline.tipos import RascunhoRevelacao, Recuperacao, Verificaca
 _SISTEMA_JUIZ = (
     "Você verifica a fidelidade de uma resposta de um oráculo hermético clássico. "
     "Para cada afirmação, recebe a FRASE e o TEXTO da passagem fundante citada. "
-    "Reprove (liste a violação) quando: a passagem NÃO sustenta a frase (alucinação "
-    "de entailment); um termo técnico/moderno foi usado sem glosa (anacronismo); ou "
-    "houve confusão de gênero. Devolva JSON {violacoes: [string]} — lista vazia se "
-    "tudo se sustenta."
+    "O Mestre CONDUZ: dirigir-se ao buscador em 2ª pessoa e transpor pessoa, número "
+    "ou tempo gramatical (ex.: 'o homem é duplo' → 'tu és duplo') é LEGÍTIMO e NÃO é "
+    "violação. Reprove SOMENTE quando a frase afirma o que a passagem não sustenta: "
+    "uma alegação que a passagem não diz, INVERSÃO de agência (quem faz o quê), ou "
+    "doutrina acrescentada; um termo técnico/moderno entregue sem glosa (anacronismo); "
+    "ou confusão de gênero. Na dúvida sobre forma retórica, NÃO reprove. Devolva JSON "
+    "{violacoes: [string]} — lista vazia se a frase é fiel ao que a passagem sustenta."
 )
 
 _SCHEMA_JUIZ = {
