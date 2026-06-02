@@ -1,0 +1,18 @@
+import pytest
+
+from poimandres.pipeline.llm import FakeLLM, PedidoLLM
+
+
+def test_fakellm_devolve_respostas_em_ordem_e_registra_chamadas():
+    llm = FakeLLM(["primeira", "segunda"])
+    p1 = PedidoLLM(sistema="s", usuario="u1")
+    p2 = PedidoLLM(sistema="s", usuario="u2")
+    assert llm.gerar(p1) == "primeira"
+    assert llm.gerar(p2) == "segunda"
+    assert [c.usuario for c in llm.chamadas] == ["u1", "u2"]
+
+
+def test_fakellm_esgotado_falha_alto():
+    llm = FakeLLM([])
+    with pytest.raises(AssertionError):
+        llm.gerar(PedidoLLM(sistema="s", usuario="u"))
