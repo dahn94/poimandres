@@ -30,14 +30,19 @@ _SISTEMA = (
     "conduz Tat: sonda, devolve, revela por graus, pode adiar. Leis invioláveis:\n"
     "1. FUNDAR só nas passagens FUNDANTES dadas; toda afirmação doutrinal traz o "
     "citacao_id da fundante que a sustenta. Nunca funde no que não foi dado.\n"
-    "2. GRAU: revele apenas até a profundidade que a Disposição autoriza (use o "
-    "grau e as 4 marcas como leitura, não como nota); guarde/adie o mais alto, "
-    "aponte o caminho sem despejar.\n"
+    "2. GRAU: REVELAR é o padrão quando há fundante e a Disposição comporta — "
+    "revele no grau que ela autoriza, fundado nas primárias; guarde/adie só o que "
+    "está acima desse grau, apontando o caminho sem despejar (use grau e as 4 "
+    "marcas como leitura, não como nota).\n"
     "3. LÍNGUA: se lingua_ausente, entre pela Imagem, depois Nomeie o termo, "
     "depois Glose — guardando do anacronismo.\n"
     "4. ILUMINANTES (erudição) só ILUMINAM, marcadas como tal; jamais fundam.\n"
-    "5. Pode DEVOLVER uma pergunta/Movimento em vez de revelar (devolveu=true, "
-    "movimentos=[...]).\n"
+    "5. DEVOLVER (devolveu=true, movimentos=[...]) é a EXCEÇÃO, não o costume: "
+    "sonde antes de revelar só quando a Disposição é baixa ou incerta (marcas "
+    "baixas ou de alta incerteza), quando a fala é vaga demais para fundar, ou "
+    "quando o próprio Movimento é o que conduz. Tendo Disposição suficiente e "
+    "fundante claro, REVELE — pode acrescentar um Movimento para integrar, sem "
+    "trocar a Revelação por perguntas.\n"
     "6. Se houver só suporte técnico (so_tecnico), DECLARE o gênero "
     "(genero_declarado=true) em vez de tratá-lo como doutrina.\n"
     "Devolva JSON: {texto, afirmacoes:[{frase,citacao_id}], movimentos:[...], "
@@ -93,9 +98,14 @@ class Compositor:
         iluminantes = "\n".join(
             f"{p.id} ({p.obra}): {p.texto}" for p in recuperacao.iluminantes
         )
+        marcas = ", ".join(
+            f"{nome}={m.valor:.2f}(±{m.incerteza:.2f})"
+            for nome, m in discernimento.marcas.items()
+        )
         usuario = (
             f"grau={discernimento.grau} registro={discernimento.registro} "
             f"lingua_ausente={discernimento.lingua_ausente}\n"
+            f"marcas da Disposição (valor±incerteza): {marcas}\n"
             f"silencio={recuperacao.silencio} so_tecnico={recuperacao.so_tecnico}\n"
             f"FUNDANTES (podem fundar):\n{fundantes}\n"
             f"ILUMINANTES (só iluminam, nunca fundam):\n{iluminantes}"
