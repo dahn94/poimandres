@@ -14,6 +14,8 @@ from poimandres.pipeline.verificador import Verificador
 
 CORPUS = Path(__file__).resolve().parents[1] / "corpus"
 
+# Discernimento fixo: valores arbitrários — estes casos-ouro exercitam o
+# Verificador/Orquestrador, não o Discernidor.
 _DISC = json.dumps(
     {
         "registro": "existencial",
@@ -73,6 +75,7 @@ def test_caso_ouro_contrato_de_citacao(tmp_path):
     final = _oraculo(tmp_path, store, [_DISC, ruim, bom]).consultar(
         "b1", "o que é o homem?"
     )
+    # (FakeEmbeddings torna a recuperação determinística; com ≤6 primárias, todas entram nas fundantes.)
     assert final.foi_limite is False
     assert final.citacoes == ["ch-i-15"]
 
@@ -81,7 +84,7 @@ def test_caso_ouro_silencio(tmp_path):
     # Corpus SEM primárias (só a excluída) → silêncio. Mesmo que o Mestre tente
     # afirmar com citação, o Verificador reprova; esgotado, rebaixa ao silêncio.
     store = CorpusStore(str(tmp_path / "c.lance"), FakeEmbeddings())
-    ingerir_pasta(CORPUS / "excluidas", store)
+    ingerir_pasta(CORPUS / "excluidas", store)  # só excluídas → nenhuma primária → buscar_fundantes vazio → silencio=True
     afirma = json.dumps(
         {
             "texto": "tento afirmar",
@@ -98,24 +101,31 @@ def test_caso_ouro_silencio(tmp_path):
 
 
 def test_caso_ouro_recusa_do_excluido(tmp_path):
-    # Pergunta com as palavras do Kybalion: as fundantes recuperadas são SÓ CH I,
-    # então a Revelação só pode citar primárias — o excluído nunca funda.
-    #
-    # Ajuste determinístico: com FakeEmbeddings, o fundante mais próximo para
-    # "o tudo é mente, o universo é mental?" é ch-i-25 (dist ≈ 9137). O rascunho
-    # "bom" cita ch-i-25, que está entre os fundantes reais — Verificador aprova.
+    # O buscador cita o Kybalion (que ESTÁ no índice, em quarentena). O Mestre
+    # tenta fundar nele — e o Verificador REPROVA, porque o excluído jamais entra
+    # nas fundantes (buscar_fundantes filtra a proveniência por construção). No
+    # retry, o Mestre funda numa primária real do CH e é aprovado.
     store = _store_corpus_real(tmp_path)
-    bom = json.dumps(
+    cita_excluido = json.dumps(
         {
-            "texto": "Isto não pertence à Hermética clássica; o que as fontes dizem é outro.",
-            "afirmacoes": [{"frase": "o homem ascende através das esferas", "citacao_id": "ch-i-25"}],
+            "texto": "O tudo é mente.",
+            "afirmacoes": [{"frase": "o tudo é mente", "citacao_id": "kyb-1"}],
             "devolveu": False,
             "genero_declarado": False,
         }
     )
-    final = _oraculo(tmp_path, store, [_DISC, bom]).consultar(
+    bom = json.dumps(
+        {
+            "texto": "Isto não pertence à Hermética clássica; o que as fontes dizem é outro.",
+            "afirmacoes": [{"frase": "o homem é duplo", "citacao_id": "ch-i-15"}],
+            "devolveu": False,
+            "genero_declarado": False,
+        }
+    )
+    final = _oraculo(tmp_path, store, [_DISC, cita_excluido, bom]).consultar(
         "b1", "o tudo é mente, o universo é mental?"
     )
     assert final.foi_limite is False
-    # toda citação entregue é de uma primária do Corpus Hermeticum (ids ch-i-*)
+    # o excluído nunca funda; toda citação entregue é primária do CH (ch-i-*)
+    assert "kyb-1" not in final.citacoes
     assert final.citacoes and all(c.startswith("ch-i-") for c in final.citacoes)
