@@ -11,11 +11,28 @@ _FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n(.*)$", re.DOTALL)
 
 
 def parse_texto(conteudo: str) -> Texto:
+    """Converte o conteúdo de um arquivo Markdown do corpus em um ``Texto``.
+
+    O arquivo tem duas partes, separadas por ``---``:
+
+        ---
+        obra: "Corpus Hermeticum"   <- frontmatter (metadados YAML)
+        ...
+        ---
+        §14 ...                     <- "corpo": o corpo DESTE arquivo Markdown
+        §15 ...                        (o texto abaixo do frontmatter)
+
+    Atenção aos três termos próximos, porém distintos:
+      * ``corpo``  = o corpo de UM arquivo (o texto abaixo do frontmatter); é o
+                     que ``segmentar`` quebra em passagens. NÃO é a coleção.
+      * corpus     = a coleção inteira de textos (a pasta ``corpus/``).
+      * "Corpus Hermeticum" = uma obra específica (um valor do campo ``obra``).
+    """
     m = _FRONTMATTER_RE.match(conteudo)
     if not m:
         raise ValueError("arquivo sem frontmatter YAML delimitado por ---")
     meta = yaml.safe_load(m.group(1)) or {}
-    corpo = m.group(2)
+    corpo = m.group(2)  # o corpo do arquivo Markdown: tudo abaixo do frontmatter
 
     proveniencia = Proveniencia(meta["proveniencia"])
     obra = meta["obra"]
