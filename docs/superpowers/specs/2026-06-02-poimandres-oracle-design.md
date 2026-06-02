@@ -229,3 +229,25 @@ trafega para a API. A interface LLMBackend preserva a opção de fechar essa por
 - **Grafo de doutrina** (Abordagem 3) — enriquecimento opcional que o Curador faz crescer com o tempo,
   a partir da semente do glossário e das tensões. Nunca pré-requisito.
 - Serviço público aberto, autenticação robusta, escala multirregião.
+
+### Nota de design — lógica paraconsistente para as contradições (2026-06-02)
+
+A polifonia do corpus (lei nº6) tem nome de batismo lógico: **lógica paraconsistente**, que
+tolera contradições sem **explosão** (em lógica clássica `A ∧ ¬A` deriva qualquer coisa). Cabe
+distinguir dois usos:
+
+- **Como motor de inferência:** só faria sentido se houvesse **dedução formal** sobre a doutrina —
+  ou seja, no **grafo de doutrina futuro**. Lá, um corpus contraditório explodiria sob lógica
+  clássica; da Costa (sistemas C) ou Priest (LP) seriam a correção principista. **Hoje o pipeline
+  não infere** (recupera e compõe), então não há explosão a domar — seria prematuro.
+- **Como lente semântica, já útil:** os **quatro valores de Belnap-Dunn** (`verdadeiro · falso ·
+  ambos · nenhum`), feitos para raciocínio com **múltiplas fontes inconsistentes e incompletas**
+  (= descrição literal do corpus), mapeiam nos comportamentos-limite do oráculo:
+  *verdadeiro* → Revelação fundada; *nenhum* → **Silêncio**; *ambos* → **Tensão** (expor, não
+  decidir). FDE é paraconsistente **e** paracompleta — silêncio e tensão deixam de ser casos
+  especiais e viram valores de verdade de primeira classe.
+
+Casamento filosófico: a Hermética não é sistema axiomático consistente; suas contradições podem ser
+*produtivas* (dispositivo iniciático, não erro) — espírito dialeteísta. **Decisão:** adotar o quadro
+de Belnap como modelo de verdade de `corpus/tensoes/` quando essa camada for curada; reservar
+da Costa/Priest para o grafo de doutrina. Nada disso entra no Plano 2a.
