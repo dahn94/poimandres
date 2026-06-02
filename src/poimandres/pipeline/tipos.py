@@ -111,7 +111,7 @@ class RevelacaoFinal:
 
     ``foi_limite`` indica que o Mestre rebaixou a resposta a uma confissão de
     limite (silêncio/recusa) em vez de revelar — nunca uma resposta infiel.
-    ``movimentos`` carrega o que o Mestre pediu quando DEVOLVEU em vez de revelar.
+    ``movimentos`` carrega o que o Mestre pede do Buscador (um Movimento) — tipicamente ao DEVOLVER em vez de revelar, mas uma Revelação também pode pedir um Movimento.
     """
 
     texto: str
