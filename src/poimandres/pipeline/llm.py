@@ -17,11 +17,14 @@ class PedidoLLM:
     """Um pedido ao LLM: a instrução de sistema e a mensagem do usuário.
 
     No Plano 2a o ``FakeLLM`` ignora o conteúdo e devolve respostas roteirizadas;
-    a saída estruturada (schema/tool-use) e o prompt caching entram no 2b.
+    no 2b o ``ClaudeLLM`` usa ``schema`` (quando presente) para forçar saída
+    estruturada via ``output_config.format``. ``schema`` é um JSON Schema; um
+    backend local futuro pode embuti-lo no prompt em vez de usar o recurso nativo.
     """
 
     sistema: str
     usuario: str
+    schema: dict | None = None
 
 
 class LLMBackend(Protocol):

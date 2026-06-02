@@ -12,6 +12,7 @@ dependencies = [
     "lancedb>=0.13",
     "sentence-transformers>=3.0",
     "click>=8.1",
+    "anthropic>=0.92",
 ]
 
 [project.optional-dependencies]
@@ -26,3 +27,6 @@ packages = ["src/poimandres"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = [
+    "eval: avaliações de fidelidade que chamam a API real do Claude (pulam sem ANTHROPIC_API_KEY)",
+]

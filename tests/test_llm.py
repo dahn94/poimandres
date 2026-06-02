@@ -16,3 +16,13 @@ def test_fakellm_esgotado_falha_alto():
     llm = FakeLLM([])
     with pytest.raises(AssertionError):
         llm.gerar(PedidoLLM(sistema="s", usuario="u"))
+
+
+def test_pedido_carrega_schema_opcional():
+    p = PedidoLLM(sistema="s", usuario="u", schema={"type": "object"})
+    assert p.schema == {"type": "object"}
+
+
+def test_pedido_schema_default_none():
+    p = PedidoLLM(sistema="s", usuario="u")
+    assert p.schema is None
