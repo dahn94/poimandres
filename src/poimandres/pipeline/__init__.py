@@ -5,14 +5,14 @@ subdivisão interna do pacote (mesmo padrão de ``poimandres.domain``).
 """
 
 from poimandres.pipeline.tipos import (
-    Afirmacao,
-    Discernimento,
     Marca,
+    Discernimento,
+    Recuperacao,
+    Afirmacao,
     Movimento,
     RascunhoRevelacao,
-    Recuperacao,
-    RevelacaoFinal,
     Verificacao,
+    RevelacaoFinal,
 )
 
 __all__ = [

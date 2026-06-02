@@ -54,7 +54,7 @@ class Recuperacao:
 
     fundantes: list[Passagem]
     iluminantes: list[Passagem]
-    tensoes: list = field(default_factory=list)
+    tensoes: list = field(default_factory=list)  # Tensão adiada (Plano 2a); o tipo do elemento será definido quando a camada de tensões existir
     silencio: bool = False
     so_tecnico: bool = False
 
