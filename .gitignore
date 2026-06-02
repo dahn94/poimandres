@@ -4,3 +4,6 @@ __pycache__/
 .venv/
 *.egg-info/
 .poimandres/
+
+# PDFs-fonte de curadoria (incl. obra comercial com copyright): ficam locais.
+material/
