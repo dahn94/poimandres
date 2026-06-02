@@ -8,6 +8,7 @@ futuro — é questão de configuração, sem tocar nas unidades.
 
 from __future__ import annotations
 
+import anthropic
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -50,3 +51,45 @@ class FakeLLM:
         if not self._respostas:
             raise AssertionError("FakeLLM: sem respostas roteirizadas restantes")
         return self._respostas.pop(0)
+
+
+class ClaudeLLM:
+    """Backend real (Claude API). Mesmo contrato ``LLMBackend`` do ``FakeLLM``.
+
+    O modelo é fixado na construção (injeção de dependência: Opus no Compositor,
+    Sonnet no Discernidor/juiz). Saída estruturada via ``output_config.format``
+    quando o pedido traz ``schema`` — Claude garante JSON válido contra o schema,
+    sem prefill (removido nesses modelos) nem tool-use. O bloco de sistema é
+    cacheado (as leis do Mestre são longas e estáveis entre turnos).
+    """
+
+    def __init__(
+        self, modelo: str, *, max_tokens: int = 8192, effort: str = "high"
+    ) -> None:
+        self._client = anthropic.Anthropic()
+        self._modelo = modelo
+        self._max_tokens = max_tokens
+        self._effort = effort
+
+    def gerar(self, pedido: PedidoLLM) -> str:
+        output_config: dict = {"effort": self._effort}
+        if pedido.schema is not None:
+            output_config["format"] = {
+                "type": "json_schema",
+                "schema": pedido.schema,
+            }
+        resposta = self._client.messages.create(
+            model=self._modelo,
+            max_tokens=self._max_tokens,
+            system=[
+                {
+                    "type": "text",
+                    "text": pedido.sistema,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            thinking={"type": "adaptive"},
+            output_config=output_config,
+            messages=[{"role": "user", "content": pedido.usuario}],
+        )
+        return next(b.text for b in resposta.content if b.type == "text")
