@@ -24,6 +24,10 @@ class Verificador:
         confessa-se silêncio; suporte só-técnico é declarado como tal.
         """
         violacoes: list[str] = []
+        # As checagens acumulam de forma independente (sem short-circuit): cada uma
+        # reporta sua própria verdade. Sob silêncio, p.ex., uma afirmação citada pode
+        # disparar tanto (1) quanto (2) — é intencional; o retry do Compositor lida
+        # com múltiplas violações.
         ids_fundantes = {p.id for p in recuperacao.fundantes}
 
         # 1. Contrato de citação (anti-alucinação). Como o excluído jamais entra
