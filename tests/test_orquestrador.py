@@ -92,6 +92,7 @@ def test_esgota_retries_e_rebaixa_ao_limite(tmp_path):
     orac = _oraculo(tmp_path, [_DISC, _RUIM, _RUIM, _RUIM], max_retries=2)
     final = orac.consultar("b1", "o que sou?")
     assert final.foi_limite is True
+    assert len(orac.memoria.ler_turnos("b1")) == 1
 
 
 def test_turno_e_registrado_na_memoria(tmp_path):
