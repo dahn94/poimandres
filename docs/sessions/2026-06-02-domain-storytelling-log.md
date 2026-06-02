@@ -362,12 +362,24 @@ Execução do **Plano 1 (Núcleo do Corpus)** via subagentes (um implementador +
 - Refactor a pedido: `domain.py` → pacote `domain/` (proveniencia/passagem/texto + re-export
   no `__init__`, imports inalterados) — `313a219`
 
-**FALTA (retomar aqui amanhã):**
-- **Tarefa 10** do Plano 1 — criar o corpus de exemplo (`corpus/primarias/ch-i-poimandres.md`,
-  `corpus/excluidas/kybalion.md`, `corpus/README.md`) + teste fim-a-fim `tests/test_e2e.py`,
-  e rodar a suíte inteira. (Texto do exemplo tem trechos a curar pelo especialista.)
-- Depois: revisão final do Plano 1 e decisão de finalização (finishing-a-development-branch).
-- Depois: escrever Plano 2 (pipeline da consulta) e Plano 3 (interface).
+**Tarefa 10 — CONCLUÍDA (sessão de 2026-06-02, retomada):**
+- Corpus de exemplo criado com texto REAL (decisão do usuário: "primária nasce fiel"):
+  `corpus/primarias/ch-i-poimandres.md` = CH I §14,15,24,25 na tradução de David Pessoa de Lira
+  (Pensamento-Cultrix, 2023; verbatim, com o aparato crítico do tradutor `[...]`/`<...>` preservado);
+  `corpus/excluidas/kybalion.md` = Kybalion §1 em quarentena; `corpus/README.md`.
+- `tests/test_e2e.py` verde; suíte inteira **28 verdes**. Commits `fac0ec7` e `bcf9eb1`.
+- Gap do Plano 1 corrigido no caminho (TDD): `ingerir_pasta` ignorava só diretórios; agora ignora
+  `README.md` (documentação, sem frontmatter) — demais arquivos malformados ainda falham alto.
+- Housekeeping: `material/` (PDFs-fonte, copyright) gitignorado; `docs/` + `uv.lock` versionados.
+
+**Plano 1 (Núcleo do Corpus): COMPLETO — 10/10 tarefas.**
+
+**PRÓXIMO:**
+- (Opcional) Step 5 do Plano 1 — smoke real com BGE-M3 (baixa ~2GB no 1º uso):
+  `.venv/bin/poimandres ingest corpus/ && .venv/bin/poimandres buscar "..."`.
+- Curar `corpus/erudicao/` a partir de `material/erudito/` (Tratado I completo + Introdução).
+- Escrever **Plano 2** (pipeline da consulta: Discernidor·Recuperador·Compositor·Verificador·Memória
+  + orquestrador + casos-ouro) e **Plano 3** (interface do círculo: FastAPI + chat web + convites).
 
 **Ambiente:** venv via **uv** em `.venv`; rodar testes com `.venv/bin/pytest`. Python 3.12.10,
 deps instaladas. O smoke real opcional da Tarefa 10 baixa o modelo BGE-M3 (~2GB) no 1º uso.
