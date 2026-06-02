@@ -23,13 +23,46 @@ MARCAS = (
     "capacidade_de_receber",
 )
 
-# Prompt mínimo e honesto; a Condução (revelação por graus) é afinada no Plano 2b.
 _SISTEMA = (
-    "Você lê a disposição interior de um buscador a partir da fala dele e "
-    "devolve um JSON com: registro, marcas (as 4: reconhecimento_de_si, pureza, "
-    "reta_intencao, capacidade_de_receber — cada uma {valor, incerteza} em 0..1), "
-    "grau (inteiro), lingua_ausente (bool), e_retorno (bool)."
+    "Você assiste um oráculo hermético clássico lendo a DISPOSIÇÃO interior de "
+    "um buscador a partir da fala dele — não para julgá-lo, mas para que o Mestre "
+    "saiba até que profundidade conduzir. Leis: (1) você lê só o que se manifesta "
+    "no diálogo, com humildade — cada marca vem com uma incerteza; (2) os dois "
+    "trilhos são desacoplados: ignorância de vocabulário (lingua_ausente) NÃO é "
+    "despreparo da alma; (3) o grau é emergente e re-sondado a cada turno, sem "
+    "currículo fixo. Devolva as 4 marcas da Disposição (reconhecimento_de_si, "
+    "pureza, reta_intencao, capacidade_de_receber), cada uma com valor e incerteza "
+    "em 0..1; o registro (lugar no espectro existencial↔doutrinal); o grau cabível "
+    "agora (inteiro ≥ 1); lingua_ausente; e_retorno."
 )
+
+_MARCA_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "valor": {"type": "number"},
+        "incerteza": {"type": "number"},
+    },
+    "required": ["valor", "incerteza"],
+    "additionalProperties": False,
+}
+
+_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "registro": {"type": "string"},
+        "marcas": {
+            "type": "object",
+            "properties": {nome: _MARCA_SCHEMA for nome in MARCAS},
+            "required": list(MARCAS),
+            "additionalProperties": False,
+        },
+        "grau": {"type": "integer"},
+        "lingua_ausente": {"type": "boolean"},
+        "e_retorno": {"type": "boolean"},
+    },
+    "required": ["registro", "marcas", "grau", "lingua_ausente", "e_retorno"],
+    "additionalProperties": False,
+}
 
 
 class Discernidor:
@@ -49,7 +82,9 @@ class Discernidor:
         contexto = ""
         if graus_memoria:
             contexto = f"\n[graus já abertos: {graus_memoria}]"
-        bruto = self._llm.gerar(PedidoLLM(sistema=_SISTEMA, usuario=fala + contexto))
+        bruto = self._llm.gerar(
+            PedidoLLM(sistema=_SISTEMA, usuario=fala + contexto, schema=_SCHEMA)
+        )
         dados = json.loads(bruto)
         marcas = {
             nome: Marca(

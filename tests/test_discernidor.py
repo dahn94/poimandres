@@ -38,3 +38,18 @@ def test_graus_memoria_entra_no_pedido():
     llm = FakeLLM([_RESP])
     Discernidor(llm).discernir("retorno", graus_memoria={"morte": "aberto"})
     assert "morte" in llm.chamadas[0].usuario
+
+
+def test_discernidor_envia_schema_estruturado():
+    llm = FakeLLM([_RESP])
+    Discernidor(llm).discernir("uma fala")
+    pedido = llm.chamadas[0]
+    assert pedido.schema is not None
+    assert pedido.schema["type"] == "object"
+    marcas = pedido.schema["properties"]["marcas"]["properties"]
+    assert set(marcas) == {
+        "reconhecimento_de_si",
+        "pureza",
+        "reta_intencao",
+        "capacidade_de_receber",
+    }
