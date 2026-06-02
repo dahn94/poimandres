@@ -32,3 +32,9 @@ def test_discernidor_envia_a_fala_ao_llm():
     llm = FakeLLM([_RESP])
     Discernidor(llm).discernir("minha fala")
     assert "minha fala" in llm.chamadas[0].usuario
+
+
+def test_graus_memoria_entra_no_pedido():
+    llm = FakeLLM([_RESP])
+    Discernidor(llm).discernir("retorno", graus_memoria={"morte": "aberto"})
+    assert "morte" in llm.chamadas[0].usuario

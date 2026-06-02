@@ -31,6 +31,18 @@ _SISTEMA = (
 )
 
 
+def _exigir_bool(dados: dict, campo: str) -> bool:
+    """Lê um campo booleano exigindo que já seja bool (parsing estrito).
+
+    Evita a corrupção silenciosa de ``bool("false") == True``: o contrato é que o
+    backend devolva um booleano JSON, não uma string.
+    """
+    valor = dados[campo]
+    if not isinstance(valor, bool):
+        raise ValueError(f"campo '{campo}' deve ser booleano, veio {valor!r}")
+    return valor
+
+
 class Discernidor:
     """Transforma a fala do Buscador num :class:`Discernimento` auditável."""
 
@@ -61,6 +73,6 @@ class Discernidor:
             registro=str(dados["registro"]),
             marcas=marcas,
             grau=int(dados["grau"]),
-            lingua_ausente=bool(dados["lingua_ausente"]),
-            e_retorno=bool(dados["e_retorno"]),
+            lingua_ausente=_exigir_bool(dados, "lingua_ausente"),
+            e_retorno=_exigir_bool(dados, "e_retorno"),
         )
