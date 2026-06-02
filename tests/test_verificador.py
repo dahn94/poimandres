@@ -57,3 +57,44 @@ def test_reprova_so_tecnico_sem_declarar_genero():
     v = Verificador().verificar(rasc, _rec(silencio=True, so_tecnico=True))
     assert v.aprovado is False
     assert any("gênero" in viol.lower() for viol in v.violacoes)
+
+
+import json
+
+from poimandres.pipeline.llm import FakeLLM
+
+
+def test_juiz_nao_e_chamado_quando_deterministico_ja_reprova():
+    llm = FakeLLM([])  # vazio: se for chamado, levanta AssertionError
+    rasc = RascunhoRevelacao(texto="x", afirmacoes=[Afirmacao("x", "nao-existe")])
+    v = Verificador(juiz=llm).verificar(rasc, _rec())
+    assert v.aprovado is False
+    assert llm.chamadas == []
+
+
+def test_juiz_reprova_quando_passagem_nao_sustenta():
+    veredito_juiz = json.dumps(
+        {"violacoes": ["a passagem ch-i-15 não sustenta 'a alma é tripartite'"]}
+    )
+    llm = FakeLLM([veredito_juiz])
+    rasc = RascunhoRevelacao(
+        texto="...", afirmacoes=[Afirmacao("a alma é tripartite", "ch-i-15")]
+    )
+    v = Verificador(juiz=llm).verificar(rasc, _rec())
+    assert v.aprovado is False
+    assert any("não sustenta" in viol for viol in v.violacoes)
+
+
+def test_juiz_aprova_quando_sem_violacoes():
+    llm = FakeLLM([json.dumps({"violacoes": []})])
+    rasc = RascunhoRevelacao(
+        texto="...", afirmacoes=[Afirmacao("o homem é duplo", "ch-i-15")]
+    )
+    assert Verificador(juiz=llm).verificar(rasc, _rec()).aprovado is True
+
+
+def test_sem_juiz_mantem_comportamento_2a():
+    rasc = RascunhoRevelacao(
+        texto="...", afirmacoes=[Afirmacao("o homem é duplo", "ch-i-15")]
+    )
+    assert Verificador().verificar(rasc, _rec()).aprovado is True
