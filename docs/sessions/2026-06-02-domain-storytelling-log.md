@@ -416,9 +416,20 @@ Decisões/sabedoria registradas: structured outputs não suporta min/max numéri
 `devolveu` é sinal retido p/ turnos futuros. **A afinação fina dos prompts é a fase iterativa contra os
 evals — começa quando houver chave.**
 
+**Oráculo ao vivo + 1ª rodada de afinação (feita nesta sessão, via `ant auth login` OAuth):**
+- Os 3 evals reais passaram; o oráculo fala. Custo: ~$1.36 num lote (orçamento do usuário = $5) →
+  criado **modo econômico** (`montar_oraculo_economico`: Sonnet em tudo, effort low, max_tokens 2048,
+  max_retries 2) — corta o custo ~5-10×; evals e `poimandres perguntar` usam-no por padrão (`--opus`
+  p/ qualidade plena). O dreator de custo era Opus + adaptive thinking (pensamento = saída a $25/1M)
+  ×retries. Suíte determinística (75 testes) é $0.
+- **Afinação 1 (commits `76784ba`, `d0db760`):** (a) juiz licencia transposição retórica/2ª pessoa da
+  Condução (reprovava "tu és" vindo de "o homem é"), mantendo estrito em alegação/agência/anacronismo/
+  gênero; (b) Compositor passou a **revelar por padrão** quando há fundante e Disposição comporta
+  (devolver virou exceção), e recebe as 4 marcas no pedido. Resultado verificado: revela fundado em
+  CH I §14/15/24/25, modula o grau e soma um Movimento. **Afinação é iterativa e continua.**
+
 **PRÓXIMO:**
-- Rodar os **evals reais** + `poimandres perguntar` ao vivo (precisa de `ANTHROPIC_API_KEY` — login via
-  `ant auth login`, perfil em ~/.config/anthropic) e **afinar os prompts** iterativamente.
+- Continuar a **afinar os prompts** em modo econômico (Discernidor/Compositor/juiz), spot-check com `--opus`.
 - **Plano 3** — interface do círculo (FastAPI + chat web + chaves-de-convite).
 - (Opcional) Curadoria em massa do `material/erudito/`; futuramente o grafo de doutrina com a lógica
   paraconsistente (Belnap/da Costa) registrada em `logica-paraconsistente-tensoes`.
