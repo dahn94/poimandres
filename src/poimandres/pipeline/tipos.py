@@ -84,7 +84,10 @@ class RascunhoRevelacao:
 
     ``afirmacoes`` são as afirmações doutrinais (cada uma citada); ``devolveu``
     marca que o Mestre escolheu devolver em vez de revelar; ``genero_declarado``
-    que, havendo só suporte técnico, o gênero foi explicitado.
+    que, havendo só suporte técnico, o gênero foi explicitado. O mecanismo de
+    devolução (``movimentos`` + leitura de ``devolveu`` pelo orquestrador) é
+    afinado no Plano 2b; no 2a o campo existe mas o orquestrador ainda não o
+    consome.
     """
 
     texto: str

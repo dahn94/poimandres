@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 
 from poimandres.pipeline.llm import LLMBackend, PedidoLLM
+from poimandres.pipeline.parsing import exigir_bool
 from poimandres.pipeline.tipos import Discernimento, Marca
 
 #: As 4 marcas da Disposição, na ordem canônica do modelo de domínio.
@@ -29,18 +30,6 @@ _SISTEMA = (
     "reta_intencao, capacidade_de_receber — cada uma {valor, incerteza} em 0..1), "
     "grau (inteiro), lingua_ausente (bool), e_retorno (bool)."
 )
-
-
-def _exigir_bool(dados: dict, campo: str) -> bool:
-    """Lê um campo booleano exigindo que já seja bool (parsing estrito).
-
-    Evita a corrupção silenciosa de ``bool("false") == True``: o contrato é que o
-    backend devolva um booleano JSON, não uma string.
-    """
-    valor = dados[campo]
-    if not isinstance(valor, bool):
-        raise ValueError(f"campo '{campo}' deve ser booleano, veio {valor!r}")
-    return valor
 
 
 class Discernidor:
@@ -73,6 +62,6 @@ class Discernidor:
             registro=str(dados["registro"]),
             marcas=marcas,
             grau=int(dados["grau"]),
-            lingua_ausente=_exigir_bool(dados, "lingua_ausente"),
-            e_retorno=_exigir_bool(dados, "e_retorno"),
+            lingua_ausente=exigir_bool(dados, "lingua_ausente"),
+            e_retorno=exigir_bool(dados, "e_retorno"),
         )

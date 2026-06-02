@@ -13,26 +13,13 @@ from __future__ import annotations
 import json
 
 from poimandres.pipeline.llm import LLMBackend, PedidoLLM
+from poimandres.pipeline.parsing import bool_ou_default
 from poimandres.pipeline.tipos import (
     Afirmacao,
     Discernimento,
     RascunhoRevelacao,
     Recuperacao,
 )
-
-def _bool_ou_default(dados: dict, campo: str, padrao: bool) -> bool:
-    """Lê um campo booleano opcional, exigindo bool quando presente.
-
-    Chave ausente devolve ``padrao`` (ex.: omitir ``devolveu`` significa False);
-    mas, se presente, o valor precisa ser um booleano de verdade — evita a
-    corrupção silenciosa de ``bool("false") == True``.
-    """
-    if campo not in dados:
-        return padrao
-    valor = dados[campo]
-    if not isinstance(valor, bool):
-        raise ValueError(f"campo '{campo}' deve ser booleano, veio {valor!r}")
-    return valor
 
 
 _SISTEMA = (
@@ -66,6 +53,7 @@ class Compositor:
                 anexadas ao pedido para o Mestre refazer.
         """
         fundantes = "\n".join(f"{p.id}: {p.texto}" for p in recuperacao.fundantes)
+        # iluminantes são recuperados para o Compositor TECER a iluminação no Plano 2b; o prompt do 2a usa só as fundantes.
         usuario = (
             f"grau={discernimento.grau} registro={discernimento.registro}\n"
             f"silencio={recuperacao.silencio} so_tecnico={recuperacao.so_tecnico}\n"
@@ -82,6 +70,6 @@ class Compositor:
         return RascunhoRevelacao(
             texto=str(dados["texto"]),
             afirmacoes=afirmacoes,
-            devolveu=_bool_ou_default(dados, "devolveu", False),
-            genero_declarado=_bool_ou_default(dados, "genero_declarado", False),
+            devolveu=bool_ou_default(dados, "devolveu", False),
+            genero_declarado=bool_ou_default(dados, "genero_declarado", False),
         )
