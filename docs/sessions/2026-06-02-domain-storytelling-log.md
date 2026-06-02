@@ -400,11 +400,28 @@ tarefa (spec+qualidade) + revisão holística final (Opus). Plano em
 prompts reais + Claude + structured output + caching; juiz-LLM (entailment/anacronismo); devolução
 (`movimentos`/`devolveu`); tecer `iluminantes`; ensinar `genero_declarado` ao Compositor.
 
+**Plano 2b — COMPLETO (8/8 tarefas, 74 testes verdes + 3 evals que pulam sem chave), via
+subagent-driven-development (revisão spec+qualidade por tarefa + holística final em Opus = "ready").**
+Spec `docs/superpowers/specs/2026-06-02-poimandres-pipeline-2b-design.md`; plano
+`docs/superpowers/plans/2026-06-02-poimandres-pipeline-2b.md`. Entregue:
+- `ClaudeLLM` (SDK anthropic 0.105.2): **structured outputs** via `output_config.format` (NÃO prefill —
+  400 em Opus 4.8/Sonnet 4.6; NÃO tool-use), caching no sistema, adaptive thinking, effort, modelo por
+  injeção; falha alto sem bloco de texto. `PedidoLLM` ganhou `schema` opcional.
+- Prompts reais (iniciais) do Discernidor e do Compositor (voz do Mestre) + JSON schemas; Compositor
+  tece iluminantes, ensina gênero/devolução; `RevelacaoFinal.movimentos` surfaçada.
+- Verificador: **juiz-LLM** (entailment/anacronismo/gênero) só após as 3 checagens determinísticas.
+- `fabrica.montar_oraculo` (Opus→Compositor, Sonnet→Discernidor+juiz) + CLI `poimandres perguntar`.
+- `evals/` opt-in (API real, asserções tolerantes; pula sem `ANTHROPIC_API_KEY`; fora do testpaths).
+Decisões/sabedoria registradas: structured outputs não suporta min/max numérico (faixa fica no prompt);
+`devolveu` é sinal retido p/ turnos futuros. **A afinação fina dos prompts é a fase iterativa contra os
+evals — começa quando houver chave.**
+
 **PRÓXIMO:**
-- **Plano 2b** — trocar `FakeLLM` por `ClaudeLLM`, escrever/afinar os prompts (Discernidor/Compositor),
-  juiz-LLM do Verificador, prompt caching; red-team com LLM real. Pede brainstorming.
+- Rodar os **evals reais** + `poimandres perguntar` ao vivo (precisa de `ANTHROPIC_API_KEY` — login via
+  `ant auth login`, perfil em ~/.config/anthropic) e **afinar os prompts** iterativamente.
 - **Plano 3** — interface do círculo (FastAPI + chat web + chaves-de-convite).
-- (Opcional) Curadoria em massa do `material/erudito/`.
+- (Opcional) Curadoria em massa do `material/erudito/`; futuramente o grafo de doutrina com a lógica
+  paraconsistente (Belnap/da Costa) registrada em `logica-paraconsistente-tensoes`.
 
 **Ambiente:** venv via **uv** em `.venv`; rodar testes com `.venv/bin/pytest`. Python 3.12.10,
 deps instaladas. O smoke real opcional da Tarefa 10 baixa o modelo BGE-M3 (~2GB) no 1º uso.
