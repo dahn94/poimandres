@@ -21,12 +21,13 @@ class Memoria:
         self._con = sqlite3.connect(caminho)
         self._con.execute(
             "CREATE TABLE IF NOT EXISTS turno ("
-            "buscador_id TEXT, quando TEXT DEFAULT CURRENT_TIMESTAMP, "
-            "fala TEXT, revelacao TEXT, citacoes TEXT, foi_limite INTEGER)"
+            "buscador_id TEXT NOT NULL, quando TEXT DEFAULT CURRENT_TIMESTAMP, "
+            "fala TEXT NOT NULL, revelacao TEXT NOT NULL, citacoes TEXT NOT NULL, "
+            "foi_limite INTEGER NOT NULL)"
         )
         self._con.execute(
             "CREATE TABLE IF NOT EXISTS grau ("
-            "buscador_id TEXT, tema TEXT, estado TEXT, "
+            "buscador_id TEXT NOT NULL, tema TEXT NOT NULL, estado TEXT NOT NULL, "
             "quando TEXT DEFAULT CURRENT_TIMESTAMP, "
             "PRIMARY KEY (buscador_id, tema))"
         )

@@ -10,6 +10,7 @@ def test_registra_turno_e_le_de_volta(tmp_path):
     assert len(turnos) == 1
     assert turnos[0]["fala"] == "o que sou?"
     assert turnos[0]["citacoes"] == ["ch-i-15"]
+    assert turnos[0]["foi_limite"] is False
 
 
 def test_atualiza_e_le_graus(tmp_path):
