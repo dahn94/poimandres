@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "poimandres"
+version = "0.1.0"
+description = "Oráculo hermético — núcleo do corpus"
+requires-python = ">=3.12"
+dependencies = [
+    "pyyaml>=6.0",
+    "lancedb>=0.13",
+    "sentence-transformers>=3.0",
+    "click>=8.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+poimandres = "poimandres.cli:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/poimandres"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
