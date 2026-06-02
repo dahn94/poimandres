@@ -1,3 +1,11 @@
+"""Leitura de um arquivo curado do corpus para o modelo de domínio.
+
+Responsabilidade única: transformar o conteúdo de UM arquivo Markdown da pasta
+``corpus/`` num :class:`~poimandres.domain.Texto`. Separa o frontmatter YAML
+(metadados) do corpo, delega a fatia do corpo a ``segmentar`` e monta as
+``Passagem`` resultantes, propagando a proveniência do arquivo a cada uma.
+"""
+
 from __future__ import annotations
 
 import re
@@ -62,5 +70,10 @@ def parse_texto(conteudo: str) -> Texto:
 
 
 def _slug(ref_base: str, numero: str) -> str:
+    """Gera o ``id`` estável de uma passagem a partir da ref_base e do número.
+
+    Normaliza a ``ref_base`` (minúsculas, não alfanuméricos viram ``-``) e a
+    sufixa com o número da passagem — ex.: ``("CH I", "14") -> "ch-i-14"``.
+    """
     base = re.sub(r"[^a-z0-9]+", "-", ref_base.lower()).strip("-")
     return f"{base}-{numero}"

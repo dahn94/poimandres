@@ -14,6 +14,10 @@ class FakeEmbeddings:
         self.dim = dim
 
     def embed(self, textos: list[str]) -> list[list[float]]:
+        # "Hash" determinístico: distribui os caracteres em ``dim`` baldes
+        # (i % dim) e acumula em cada balde um valor em [0, 1) derivado do código
+        # do caractere (ord(ch) % 17 / 17). Não tem semântica — só dá vetores
+        # estáveis e variados o bastante para os testes.
         vetores: list[list[float]] = []
         for t in textos:
             v = [0.0] * self.dim
