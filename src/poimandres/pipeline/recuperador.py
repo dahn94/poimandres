@@ -12,6 +12,7 @@ from __future__ import annotations
 from math import inf
 
 from poimandres.corpus.store import CorpusStore, Resultado
+from poimandres.domain import Passagem
 from poimandres.pipeline.tipos import Recuperacao
 
 
@@ -42,7 +43,7 @@ class Recuperador:
         fundantes = self._dentro(self._store.buscar_fundantes(consulta, k_fundantes), limiar)
         iluminantes = [r.passagem for r in self._store.buscar_iluminantes(consulta, k_iluminantes)]
         silencio = not fundantes
-        so_tecnico = silencio and bool(self._store.buscar_tecnicas(consulta, k_iluminantes))
+        so_tecnico = silencio and bool(self._store.buscar_tecnicas(consulta, 1))
         return Recuperacao(
             fundantes=fundantes,
             iluminantes=iluminantes,
@@ -52,6 +53,6 @@ class Recuperador:
         )
 
     @staticmethod
-    def _dentro(resultados: list[Resultado], limiar: float) -> list:
+    def _dentro(resultados: list[Resultado], limiar: float) -> list[Passagem]:
         """Passagens cuja distância à consulta não excede o ``limiar``."""
         return [r.passagem for r in resultados if r.distancia <= limiar]

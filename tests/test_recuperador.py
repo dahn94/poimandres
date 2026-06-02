@@ -29,6 +29,7 @@ def test_sem_primarias_confessa_silencio(tmp_path):
     rec = Recuperador(store).recuperar("o tudo é mente")
     assert rec.fundantes == []
     assert rec.silencio is True
+    assert rec.so_tecnico is False
 
 
 def test_limiar_estrito_corta_fundantes_distantes(tmp_path):
