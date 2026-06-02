@@ -29,8 +29,8 @@ def test_pedido_schema_default_none():
 
 
 class _FakeContentBlock:
-    def __init__(self, type, text=""):
-        self.type = type
+    def __init__(self, tipo, text=""):
+        self.type = tipo
         self.text = text
 
 
@@ -87,3 +87,22 @@ def test_claudellm_sem_schema_nao_passa_format(monkeypatch):
 
     llm_mod.ClaudeLLM("claude-sonnet-4-6").gerar(PedidoLLM(sistema="s", usuario="u"))
     assert "format" not in fake.chamadas[0]["output_config"]
+
+
+def test_claudellm_falha_sem_bloco_de_texto(monkeypatch):
+    from poimandres.pipeline import llm as llm_mod
+
+    class _SoThinking:
+        content = [_FakeContentBlock("thinking", "")]
+
+    class _MsgsSoThinking:
+        def create(self, **kwargs):
+            return _SoThinking()
+
+    class _ClientSoThinking:
+        def __init__(self):
+            self.messages = _MsgsSoThinking()
+
+    monkeypatch.setattr(llm_mod.anthropic, "Anthropic", lambda: _ClientSoThinking())
+    with pytest.raises(RuntimeError):
+        llm_mod.ClaudeLLM("claude-opus-4-8").gerar(PedidoLLM(sistema="s", usuario="u"))

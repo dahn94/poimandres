@@ -92,4 +92,9 @@ class ClaudeLLM:
             output_config=output_config,
             messages=[{"role": "user", "content": pedido.usuario}],
         )
-        return next(b.text for b in resposta.content if b.type == "text")
+        texto = next((b.text for b in resposta.content if b.type == "text"), None)
+        if texto is None:
+            raise RuntimeError(
+                f"ClaudeLLM: resposta sem bloco de texto — conteúdo: {resposta.content!r}"
+            )
+        return texto
