@@ -386,12 +386,25 @@ removidos; bloco multi-verso sob o §N principal. Teste e2e `test_erudicao_ilumi
 verde (29 testes). Smoke real: `buscar_iluminantes("homem duplo")` devolve o comentário ao §15/§14/§25;
 nunca aparece em `buscar_fundantes`. As 3 camadas (funda/ilumina/recusa) provadas ponta-a-ponta.
 
+**Plano 2 decomposto (brainstorming 2026-06-02):** 2a = espinha determinística (FakeLLM); 2b = unidades
+LLM + Condução com Claude real. Decisões: reusar `§N` por convenção (Abordagem A); Tensão adiada;
+**lógica paraconsistente** (Belnap/da Costa) registrada para o grafo futuro (ver [[logica-paraconsistente-tensoes]]
+na memória + §9 da spec).
+
+**Plano 2a — COMPLETO (9/9 tarefas, 59 testes verdes), via subagent-driven-development:** pacote
+`src/poimandres/pipeline/` (tipos · llm[LLMBackend+FakeLLM] · recuperador · discernidor · compositor ·
+verificador · memoria[SQLite] · orquestrador[Oraculo] · parsing) + casos-ouro e2e provando as 3 leis:
+contrato de citação, silêncio honesto, recusa do excluído (citação a `kyb-1` reprovada). Revisão por
+tarefa (spec+qualidade) + revisão holística final (Opus). Plano em
+`docs/superpowers/plans/2026-06-02-poimandres-pipeline-2a.md`. Postergado ao 2b (documentado no código):
+prompts reais + Claude + structured output + caching; juiz-LLM (entailment/anacronismo); devolução
+(`movimentos`/`devolveu`); tecer `iluminantes`; ensinar `genero_declarado` ao Compositor.
+
 **PRÓXIMO:**
-- (Opcional) Curadoria em massa do `material/erudito/` (resto do Tratado I; Introdução completa).
-- Escrever **Plano 2** (pipeline da consulta: Discernidor·Recuperador·Compositor·Verificador·Memória
-  + orquestrador + casos-ouro) e **Plano 3** (interface do círculo: FastAPI + chat web + convites).
-  O Plano 2 é a parte mais distinta do projeto (Condução, revelação por graus, Verificador) e
-  pede sessão de brainstorming antes de escrever.
+- **Plano 2b** — trocar `FakeLLM` por `ClaudeLLM`, escrever/afinar os prompts (Discernidor/Compositor),
+  juiz-LLM do Verificador, prompt caching; red-team com LLM real. Pede brainstorming.
+- **Plano 3** — interface do círculo (FastAPI + chat web + chaves-de-convite).
+- (Opcional) Curadoria em massa do `material/erudito/`.
 
 **Ambiente:** venv via **uv** em `.venv`; rodar testes com `.venv/bin/pytest`. Python 3.12.10,
 deps instaladas. O smoke real opcional da Tarefa 10 baixa o modelo BGE-M3 (~2GB) no 1º uso.
