@@ -1,0 +1,35 @@
+from __future__ import annotations
+
+from typing import Protocol
+
+
+class EmbeddingsBackend(Protocol):
+    def embed(self, textos: list[str]) -> list[list[float]]: ...
+
+
+class FakeEmbeddings:
+    """Embeddings determinísticos para testes — sem baixar modelos nem rede."""
+
+    def __init__(self, dim: int = 8) -> None:
+        self.dim = dim
+
+    def embed(self, textos: list[str]) -> list[list[float]]:
+        vetores: list[list[float]] = []
+        for t in textos:
+            v = [0.0] * self.dim
+            for i, ch in enumerate(t):
+                v[i % self.dim] += (ord(ch) % 17) / 17.0
+            vetores.append(v)
+        return vetores
+
+
+class LocalEmbeddings:
+    """BGE-M3 via sentence-transformers; roda local na VPS (CPU ok), multilíngue."""
+
+    def __init__(self, modelo: str = "BAAI/bge-m3") -> None:
+        from sentence_transformers import SentenceTransformer
+
+        self._model = SentenceTransformer(modelo)
+
+    def embed(self, textos: list[str]) -> list[list[float]]:
+        return self._model.encode(textos, normalize_embeddings=True).tolist()
