@@ -4,8 +4,10 @@ Recebe o :class:`Discernimento` e a :class:`Recuperacao`, pede ao LLM uma
 Revelação no grau cabível e PARSEIA a saída num rascunho cujas afirmações
 doutrinais vêm declaradamente citadas (contrato que o Verificador fará cumprir).
 No retry, as violações apontadas pelo Verificador entram no pedido, para o
-Mestre refazer. O prompt da voz do Mestre (Condução, trilho da língua, quando
-devolver) é afinado no Plano 2b; aqui o que importa é o encanamento.
+Mestre refazer. O prompt-sistema da voz do Mestre é uma versão inicial fiel às
+leis; sua afinação fina é a fase iterativa do Plano 2b contra os evals. As
+afirmações doutrinais saem declaradamente citadas (contrato que o Verificador
+faz cumprir); iluminantes entram como iluminação, nunca como fundamento.
 """
 
 from __future__ import annotations

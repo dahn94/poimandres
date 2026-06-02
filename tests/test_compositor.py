@@ -74,3 +74,18 @@ def test_compositor_inclui_iluminantes_no_pedido():
     usuario = llm.chamadas[0].usuario
     assert "ILUMINANTES" in usuario
     assert "coment-15" in usuario
+
+
+def test_compositor_parseia_movimentos():
+    resp = json.dumps(
+        {
+            "texto": "Antes de revelar, observe.",
+            "afirmacoes": [],
+            "movimentos": ["Quem é você diante disto?"],
+            "devolveu": True,
+            "genero_declarado": False,
+        }
+    )
+    rasc = Compositor(FakeLLM([resp])).compor(_DISC, _REC)
+    assert [m.pedido for m in rasc.movimentos] == ["Quem é você diante disto?"]
+    assert rasc.devolveu is True
