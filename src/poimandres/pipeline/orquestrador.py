@@ -54,6 +54,7 @@ class Oraculo:
                     texto=rascunho.texto,
                     citacoes=[a.citacao_id for a in rascunho.afirmacoes],
                     foi_limite=False,
+                    movimentos=[m.pedido for m in rascunho.movimentos],
                 )
                 self.memoria.registrar_turno(buscador_id, fala, final)
                 return final

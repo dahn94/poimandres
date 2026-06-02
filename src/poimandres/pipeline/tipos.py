@@ -111,8 +111,10 @@ class RevelacaoFinal:
 
     ``foi_limite`` indica que o Mestre rebaixou a resposta a uma confissão de
     limite (silêncio/recusa) em vez de revelar — nunca uma resposta infiel.
+    ``movimentos`` carrega o que o Mestre pediu quando DEVOLVEU em vez de revelar.
     """
 
     texto: str
     citacoes: list[str] = field(default_factory=list)
     foi_limite: bool = False
+    movimentos: list[str] = field(default_factory=list)

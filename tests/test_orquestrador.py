@@ -99,3 +99,20 @@ def test_turno_e_registrado_na_memoria(tmp_path):
     orac = _oraculo(tmp_path, [_DISC, _BOM])
     orac.consultar("b1", "o que sou?")
     assert len(orac.memoria.ler_turnos("b1")) == 1
+
+
+def test_devolucao_surfaca_movimentos(tmp_path):
+    devolve = json.dumps(
+        {
+            "texto": "Antes de responder: o que você já entregou ao buscar isto?",
+            "afirmacoes": [],
+            "movimentos": ["observe o que move sua pergunta"],
+            "devolveu": True,
+            "genero_declarado": False,
+        }
+    )
+    orac = _oraculo(tmp_path, [_DISC, devolve])
+    final = orac.consultar("b1", "o que é a gnose?")
+    assert final.foi_limite is False
+    assert final.movimentos == ["observe o que move sua pergunta"]
+    assert final.citacoes == []
