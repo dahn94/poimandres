@@ -3,8 +3,10 @@
 Chama o :class:`~poimandres.pipeline.llm.LLMBackend` pedindo uma leitura das 4
 marcas da Disposição (cada uma COM incerteza — lei nº7), do Registro, do Grau
 cabível agora e dos sinais de língua-ausente/retorno; depois PARSEIA essa saída
-estruturada (JSON) no tipo de domínio. No Plano 2a o prompt é mínimo e o
-``FakeLLM`` devolve o JSON; afiná-lo é trabalho do Plano 2b.
+estruturada (JSON) no tipo de domínio. O prompt-sistema é uma versão inicial fiel
+às leis; sua afinação fina é a fase iterativa do Plano 2b contra os evals. Com o
+``ClaudeLLM`` a saída estruturada é garantida pelo schema (``PedidoLLM.schema``);
+com o ``FakeLLM`` (testes) o schema é ignorado.
 """
 
 from __future__ import annotations
