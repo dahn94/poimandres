@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from enum import Enum
 
 
@@ -21,3 +22,24 @@ class Proveniencia(Enum):
     @property
     def em_quarentena(self) -> bool:
         return self is Proveniencia.EXCLUIDO
+
+
+@dataclass(frozen=True)
+class Passagem:
+    id: str
+    ref_canonica: str
+    texto: str
+    proveniencia: Proveniencia
+    obra: str
+    tratado: str | None = None
+
+
+@dataclass
+class Texto:
+    obra: str
+    tratado: str | None
+    proveniencia: Proveniencia
+    autor_ou_tradutor: str
+    idioma: str
+    ref_base: str
+    passagens: list[Passagem]
