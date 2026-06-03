@@ -1,3 +1,6 @@
+import time
+from types import SimpleNamespace
+
 from fastapi.testclient import TestClient
 
 from poimandres.web import criar_app
@@ -34,9 +37,6 @@ def test_get_inicio_renderiza_historico():
     assert resp.status_code == 200
     assert "o que sou?" in resp.text
     assert "és duplo" in resp.text
-
-
-from types import SimpleNamespace
 
 
 def _final(texto, *, citacoes=(), movimentos=(), foi_limite=False):
@@ -91,8 +91,6 @@ def test_turno_desconhecido_404():
 
 
 def test_perguntar_em_thread_eventualmente_pronto():
-    import time
-
     final = _final("pronto via thread", citacoes=["ch-i-1"])
     cliente = TestClient(criar_app(_OraculoFake(final=final), em_thread=True))
     tid = cliente.post("/perguntar", json={"fala": "?"}).json()["turno_id"]
