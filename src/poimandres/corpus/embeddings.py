@@ -28,12 +28,20 @@ class FakeEmbeddings:
 
 
 class LocalEmbeddings:
-    """BGE-M3 via sentence-transformers; roda local na VPS (CPU ok), multilíngue."""
+    """BGE-M3 via sentence-transformers; roda local na VPS (CPU ok), multilíngue.
 
-    def __init__(self, modelo: str = "BAAI/bge-m3") -> None:
+    Vetoriza em lotes pequenos (``batch_size``) para limitar o pico de memória —
+    passagens longas (ex.: comentários do corpus) podem estourar a GPU (MPS) ou a
+    RAM se codificadas todas de uma vez.
+    """
+
+    def __init__(self, modelo: str = "BAAI/bge-m3", *, batch_size: int = 8) -> None:
         from sentence_transformers import SentenceTransformer
 
         self._model = SentenceTransformer(modelo)
+        self._batch_size = batch_size
 
     def embed(self, textos: list[str]) -> list[list[float]]:
-        return self._model.encode(textos, normalize_embeddings=True).tolist()
+        return self._model.encode(
+            textos, normalize_embeddings=True, batch_size=self._batch_size
+        ).tolist()

@@ -53,9 +53,13 @@ def _store_corpus_real(tmp_path):
 
 
 def test_caso_ouro_contrato_de_citacao(tmp_path):
-    # Buscador pergunta sobre o homem duplo; o Mestre tenta citar algo inexistente,
-    # o Verificador reprova, e no retry corrige citando uma primária real do corpus.
+    # Buscador pergunta; o Mestre tenta citar algo inexistente, o Verificador
+    # reprova, e no retry corrige citando o fundante que a recuperação retorna.
     store = _store_corpus_real(tmp_path)
+    pergunta = "o que é o homem?"
+    # id derivado da recuperação real: FakeEmbeddings é determinístico, mas não
+    # semântico — derivar o id mantém o teste estável quando o corpus cresce.
+    id_real = Recuperador(store).recuperar(pergunta).fundantes[0].id
     ruim = json.dumps(
         {
             "texto": "x",
@@ -67,17 +71,14 @@ def test_caso_ouro_contrato_de_citacao(tmp_path):
     bom = json.dumps(
         {
             "texto": "O homem é duplo.",
-            "afirmacoes": [{"frase": "o homem é duplo", "citacao_id": "ch-i-15"}],
+            "afirmacoes": [{"frase": "o homem é duplo", "citacao_id": id_real}],
             "devolveu": False,
             "genero_declarado": False,
         }
     )
-    final = _oraculo(tmp_path, store, [_DISC, ruim, bom]).consultar(
-        "b1", "o que é o homem?"
-    )
-    # (FakeEmbeddings torna a recuperação determinística; com ≤6 primárias, todas entram nas fundantes.)
+    final = _oraculo(tmp_path, store, [_DISC, ruim, bom]).consultar("b1", pergunta)
     assert final.foi_limite is False
-    assert final.citacoes == ["ch-i-15"]
+    assert final.citacoes == [id_real]
 
 
 def test_caso_ouro_silencio(tmp_path):
@@ -106,6 +107,8 @@ def test_caso_ouro_recusa_do_excluido(tmp_path):
     # nas fundantes (buscar_fundantes filtra a proveniência por construção). No
     # retry, o Mestre funda numa primária real do CH e é aprovado.
     store = _store_corpus_real(tmp_path)
+    pergunta = "o tudo é mente, o universo é mental?"
+    id_real = Recuperador(store).recuperar(pergunta).fundantes[0].id
     cita_excluido = json.dumps(
         {
             "texto": "O tudo é mente.",
@@ -117,14 +120,12 @@ def test_caso_ouro_recusa_do_excluido(tmp_path):
     bom = json.dumps(
         {
             "texto": "Isto não pertence à Hermética clássica; o que as fontes dizem é outro.",
-            "afirmacoes": [{"frase": "o homem é duplo", "citacao_id": "ch-i-15"}],
+            "afirmacoes": [{"frase": "o homem é duplo", "citacao_id": id_real}],
             "devolveu": False,
             "genero_declarado": False,
         }
     )
-    final = _oraculo(tmp_path, store, [_DISC, cita_excluido, bom]).consultar(
-        "b1", "o tudo é mente, o universo é mental?"
-    )
+    final = _oraculo(tmp_path, store, [_DISC, cita_excluido, bom]).consultar("b1", pergunta)
     assert final.foi_limite is False
     # o excluído nunca funda; toda citação entregue é primária do CH (ch-i-*)
     assert "kyb-1" not in final.citacoes
