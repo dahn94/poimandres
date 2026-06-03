@@ -51,3 +51,14 @@ def test_so_tecnico_quando_so_ha_tecnica(tmp_path):
     rec = Recuperador(store).recuperar("decano")
     assert rec.silencio is True
     assert rec.so_tecnico is True
+
+
+def test_limiar_de_construcao_e_o_default(tmp_path):
+    # o limiar passado no construtor vale como default de recuperar()
+    store = CorpusStore(str(tmp_path / "c.lance"), FakeEmbeddings())
+    store.adicionar(
+        [_passagem("ch-i-15", "o homem é duplo", Proveniencia.PRIMARIA, "CH")]
+    )
+    rec = Recuperador(store, limiar=-1.0).recuperar("homem duplo")
+    assert rec.fundantes == []
+    assert rec.silencio is True

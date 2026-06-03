@@ -19,8 +19,9 @@ from poimandres.pipeline.tipos import Recuperacao
 class Recuperador:
     """Recupera do corpus o material de um turno, separado por papel de autoridade."""
 
-    def __init__(self, store: CorpusStore) -> None:
+    def __init__(self, store: CorpusStore, *, limiar: float = inf) -> None:
         self._store = store
+        self._limiar = limiar
 
     def recuperar(
         self,
@@ -28,7 +29,7 @@ class Recuperador:
         *,
         k_fundantes: int = 6,
         k_iluminantes: int = 4,
-        limiar: float = inf,
+        limiar: float | None = None,
     ) -> Recuperacao:
         """Monta a :class:`Recuperacao` para ``consulta``.
 
@@ -37,9 +38,12 @@ class Recuperador:
             k_fundantes: quantas primárias buscar (antes do corte por ``limiar``).
             k_iluminantes: quantas fontes de erudição/testemunho buscar.
             limiar: distância máxima para uma fundante "fundar" de fato; acima
-                dela, o corpus é tratado como silente sobre o tema. ``inf`` =
-                sem corte (o valor real é afinado no Plano 2b).
+                dela, o corpus é tratado como silente sobre o tema. ``None`` usa o
+                limiar de construção (default ``inf`` = sem corte). Calibrado em
+                ~1.15 para o BGE-M3 (relevante ≲1.0; fora-do-tema ≳1.33).
         """
+        if limiar is None:
+            limiar = self._limiar
         fundantes = self._dentro(self._store.buscar_fundantes(consulta, k_fundantes), limiar)
         iluminantes = [r.passagem for r in self._store.buscar_iluminantes(consulta, k_iluminantes)]
         silencio = not fundantes

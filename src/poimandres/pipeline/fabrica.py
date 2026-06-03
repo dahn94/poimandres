@@ -34,6 +34,7 @@ def montar_oraculo(
     modelo_rapido: str = _MODELO_RAPIDO,
     effort: str = "high",
     max_tokens: int = 8192,
+    limiar: float = 1.15,
     fazer_llm: Callable[[str], LLMBackend] | None = None,
     max_retries: int = 2,
 ) -> Oraculo:
@@ -47,6 +48,9 @@ def montar_oraculo(
         effort: esforço de raciocínio (``low``|``medium``|``high``|``max``). Padrão
             ``high`` (produção); ``low`` corta drasticamente o custo (afinação).
         max_tokens: teto de tokens por chamada.
+        limiar: distância máxima (BGE-M3) para uma primária fundar; acima dela o
+            tema é tratado como silente. ~1.15 separa relevante (≲1.0) de
+            fora-do-tema (≳1.33).
         fazer_llm: fábrica de backend por modelo (injetável nos testes). Quando
             ``None``, usa ``ClaudeLLM`` com ``effort``/``max_tokens`` acima.
         max_retries: tentativas do Compositor antes do limite honesto.
@@ -58,7 +62,7 @@ def montar_oraculo(
 
     return Oraculo(
         discernidor=Discernidor(fazer_llm(modelo_rapido)),
-        recuperador=Recuperador(store),
+        recuperador=Recuperador(store, limiar=limiar),
         compositor=Compositor(fazer_llm(modelo_mestre)),
         verificador=Verificador(juiz=fazer_llm(modelo_rapido)),
         memoria=Memoria(db_memoria),
