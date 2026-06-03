@@ -451,8 +451,21 @@ imagem) e conferi os 32 versos verso a verso. Tudo bate: fronteiras corretas, ap
 corrigido (agora 32 versos). Nível-palavra contra o impresso fica para o olho do especialista, mas o
 texto veio da camada-de-texto exata do PDF (não OCR). 65 passagens no índice.
 
+**Plano 3a — COMPLETO (4 tarefas, 86 testes verdes), via subagent-driven:** chat web local do oráculo.
+Spec `docs/superpowers/specs/2026-06-02-poimandres-interface-3a-design.md`; plano
+`docs/superpowers/plans/2026-06-02-poimandres-interface-3a.md`. Pacote `src/poimandres/web/`
+(`criar_app(oraculo, em_thread=…)` — FastAPI; `GET /` histórico, `POST /perguntar` dispara `consultar`
+numa thread + dict `em_voo`, `GET /turno/{id}` polling; template Jinja2 + JS vanilla com espera temática
+e escape de XSS; CLI `poimandres servir --economico/--opus/--porta`). Single-user, sem auth (buscador
+"local"); convites/multiusuário/deploy/streaming-de-etapas = **Plano 3b**. **Bug crítico pego na
+revisão holística (Opus) e corrigido (`b84c636`):** SQLite cross-thread — a conexão da Memória nascia
+na thread principal mas o turno roda em thread daemon; `check_same_thread=False` resolve (turnos seriais,
+sem contenção). Os testes verdes não pegaram porque usam `em_thread=False`/oráculo fake. Smoke real
+(`poimandres servir`) é manual (gasta API).
+
 **PRÓXIMO:**
-- Continuar afinando (Discernidor/grau, mais probes) e/ou **Plano 3** (interface do círculo: FastAPI+chat+convites).
+- Smoke manual do `servir` (você, com chave) e, se quiser, **Plano 3b** (convites + tabela buscador +
+  multiusuário + deploy na VPS + streaming de etapas); ou mais afinação / mais corpus.
 - **Plano 3** — interface do círculo (FastAPI + chat web + chaves-de-convite).
 - (Opcional) Curadoria em massa do `material/erudito/`; futuramente o grafo de doutrina com a lógica
   paraconsistente (Belnap/da Costa) registrada em `logica-paraconsistente-tensoes`.
