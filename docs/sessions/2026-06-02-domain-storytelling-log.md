@@ -444,9 +444,15 @@ língua (Imagem→Nomeação→Glosa) só é executado de forma confiável pelo 
 entra por imagem e devolve, sem nomear; o Opus nomeia o "homem essencial" fundado em §15, modulando o
 grau. Confirma: **iterar estrutura no Sonnet (grátis-quase), voz da Condução pede Opus** (design de produção).
 
+**Proofreading da primária CH I — FEITO (estrutural, contra páginas renderizadas do PDF, commit
+`baa9b3e`):** renderizei as páginas PT 105/107/109/111/113/115/117/120 (`pdftoppm` → PNG → leitura de
+imagem) e conferi os 32 versos verso a verso. Tudo bate: fronteiras corretas, aparato do tradutor
+(`<...>`/`[...]`/`†...†`/`[sic]`) fiel. Único erro estrutural era o §31 engolindo o §32 (prece final) —
+corrigido (agora 32 versos). Nível-palavra contra o impresso fica para o olho do especialista, mas o
+texto veio da camada-de-texto exata do PDF (não OCR). 65 passagens no índice.
+
 **PRÓXIMO:**
-- **Proofreading da primária CH I** (você, contra o livro) — corrigir qualquer artefato de extração.
-- Continuar afinando (Discernidor/grau, mais probes) e/ou **Plano 3** (interface do círculo).
+- Continuar afinando (Discernidor/grau, mais probes) e/ou **Plano 3** (interface do círculo: FastAPI+chat+convites).
 - **Plano 3** — interface do círculo (FastAPI + chat web + chaves-de-convite).
 - (Opcional) Curadoria em massa do `material/erudito/`; futuramente o grafo de doutrina com a lógica
   paraconsistente (Belnap/da Costa) registrada em `logica-paraconsistente-tensoes`.
