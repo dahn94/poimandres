@@ -30,3 +30,15 @@ def test_ingest_e_buscar_fim_a_fim(tmp_path, monkeypatch):
     r2 = runner.invoke(cli, ["buscar", "o homem é duplo", "--db", db])
     assert r2.exit_code == 0, r2.output
     assert "CH I §15" in r2.output
+
+
+def test_servir_listado_no_help():
+    from click.testing import CliRunner
+
+    from poimandres.cli import cli
+
+    res = CliRunner().invoke(cli, ["servir", "--help"])
+    assert res.exit_code == 0
+    assert "--economico" in res.output
+    assert "--opus" in res.output
+    assert "--porta" in res.output

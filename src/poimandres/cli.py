@@ -105,3 +105,33 @@ def perguntar(fala: str, buscador: str, db: str, economico: bool) -> None:
             click.echo(f"  — funda em {cit}")
         for mov in final.movimentos:
             click.echo(f"  → {mov}")
+
+
+@cli.command()
+@click.option(
+    "--economico/--opus",
+    default=True,
+    show_default=True,
+    help="Modo barato (Sonnet) ou voz plena (Opus) — cada turno custa via Claude API.",
+)
+@click.option("--porta", default=8000, show_default=True)
+@click.option("--db", default=_DB_PADRAO, show_default=True)
+def servir(economico: bool, porta: int, db: str) -> None:
+    """Sobe o chat web local do oráculo em http://127.0.0.1:<porta>.
+
+    Requer credencial Anthropic (``ANTHROPIC_API_KEY`` ou ``ant auth login``) e o
+    índice em ``--db`` já ingerido. Buscador único (sem auth) — Plano 3a.
+    """
+    import uvicorn
+
+    from poimandres.pipeline.fabrica import montar_oraculo, montar_oraculo_economico
+    from poimandres.web import criar_app
+
+    montar = montar_oraculo_economico if economico else montar_oraculo
+    store = CorpusStore(db, _fazer_embeddings())
+    oraculo = montar(store=store, db_memoria=str(Path(db).parent / "estado.db"))
+    click.echo(
+        f"Poimandres no ar em http://127.0.0.1:{porta}  (modo: "
+        f"{'econômico' if economico else 'opus'})"
+    )
+    uvicorn.run(criar_app(oraculo), host="127.0.0.1", port=porta)
