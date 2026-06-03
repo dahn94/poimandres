@@ -48,6 +48,10 @@ _SISTEMA = (
     "trocar a Revelação por perguntas.\n"
     "6. Se houver só suporte técnico (so_tecnico), DECLARE o gênero "
     "(genero_declarado=true) em vez de tratá-lo como doutrina.\n"
+    "7. CONVERSA: o DIÁLOGO até aqui é dado abaixo. NÃO repita perguntas já feitas "
+    "nem re-sonde o que o buscador já respondeu; AVANCE — aprofunde o grau a cada "
+    "troca, revele mais, varie os Movimentos, e não funde sempre nos mesmos versos. "
+    "Se o buscador já se abriu (já disse o que o traz), REVELE em vez de sondar de novo.\n"
     "Devolva JSON: {texto, afirmacoes:[{frase,citacao_id}], movimentos:[...], "
     "devolveu, genero_declarado}."
 )
@@ -88,6 +92,7 @@ class Compositor:
         recuperacao: Recuperacao,
         *,
         violacoes: list[str] | None = None,
+        historico: list[dict] | None = None,
     ) -> RascunhoRevelacao:
         """Compõe um :class:`RascunhoRevelacao` a partir do turno recuperado.
 
@@ -96,6 +101,9 @@ class Compositor:
             recuperacao: o material do corpus (fundantes/iluminantes/silêncio).
             violacoes: se este é um retry, as violações que o Verificador anotou —
                 anexadas ao pedido para o Mestre refazer.
+            historico: turnos anteriores do diálogo (o loop) — cada um
+                ``{fala, revelacao, ...}``. Renderizados como o DIÁLOGO ATÉ AQUI
+                que a regra #7 manda o Mestre não repetir e fazer avançar.
         """
         fundantes = "\n".join(f"{p.id}: {p.texto}" for p in recuperacao.fundantes)
         iluminantes = "\n".join(
@@ -113,6 +121,11 @@ class Compositor:
             f"FUNDANTES (podem fundar):\n{fundantes}\n"
             f"ILUMINANTES (só iluminam, nunca fundam):\n{iluminantes}"
         )
+        if historico:
+            dialogo = "\n".join(
+                f"Buscador: {t['fala']}\nMestre: {t['revelacao']}" for t in historico
+            )
+            usuario += f"\nDIÁLOGO ATÉ AQUI:\n{dialogo}"
         if violacoes:
             usuario += "\n[REFAÇA — violações: " + "; ".join(violacoes) + "]"
         bruto = self._llm.gerar(

@@ -101,6 +101,50 @@ def test_turno_e_registrado_na_memoria(tmp_path):
     assert len(orac.memoria.ler_turnos("b1")) == 1
 
 
+def test_revelar_abre_o_grau_da_fundante(tmp_path):
+    # opção 1, face 1: o único fato observado num turno revelado é "fundou em
+    # ch-i-15" → o assunto dessa fundante vira 'aberto' (tema = citacao_id).
+    orac = _oraculo(tmp_path, [_DISC, _BOM])
+    orac.consultar("b1", "o que sou?")
+    assert orac.memoria.ler_graus("b1") == {"ch-i-15": "aberto"}
+
+
+def test_limite_nao_abre_grau(tmp_path):
+    # rebaixado ao limite (sem citações) → nada foi revelado → nada se abre.
+    orac = _oraculo(tmp_path, [_DISC, _RUIM, _RUIM, _RUIM], max_retries=2)
+    orac.consultar("b1", "o que sou?")
+    assert orac.memoria.ler_graus("b1") == {}
+
+
+def test_retorno_nao_promove_a_integrado(tmp_path):
+    # opção 1, face 2 (o invariante): 'integrado' é adiado. Voltar e reabrir o
+    # mesmo assunto NÃO o marca integrado — só o vivido (lei nº3) seria, e o
+    # pipeline não observa isso. Permanece 'aberto'.
+    orac = _oraculo(tmp_path, [_DISC, _BOM, _DISC, _BOM])
+    orac.consultar("b1", "o que sou?")
+    orac.consultar("b1", "o que sou?")
+    assert orac.memoria.ler_graus("b1") == {"ch-i-15": "aberto"}
+
+
+def test_compositor_recebe_historico_dos_turnos_anteriores(tmp_path):
+    # o loop: no 2º turno, o diálogo do 1º (fala + Revelação) entra no pedido
+    # do Compositor — para o Mestre não re-sondar nem repetir.
+    llm = FakeLLM([_DISC, _BOM, _DISC, _BOM])
+    orac = Oraculo(
+        discernidor=Discernidor(llm),
+        recuperador=Recuperador(_store(tmp_path)),
+        compositor=Compositor(llm),
+        verificador=Verificador(),
+        memoria=Memoria(str(tmp_path / "estado.db")),
+    )
+    orac.consultar("b1", "o que sou?")
+    orac.consultar("b1", "e depois da morte?")
+    # último pedido = Compositor do 2º turno
+    usuario = llm.chamadas[-1].usuario
+    assert "DIÁLOGO ATÉ AQUI" in usuario
+    assert "o que sou?" in usuario
+
+
 def test_devolucao_surfaca_movimentos(tmp_path):
     devolve = json.dumps(
         {

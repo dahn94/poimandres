@@ -76,6 +76,32 @@ def test_compositor_inclui_iluminantes_no_pedido():
     assert "coment-15" in usuario
 
 
+def test_compositor_inclui_historico_no_pedido():
+    # o loop: a regra #7 promete "o DIÁLOGO até aqui" — o turno completo
+    # (fala do Buscador + Revelação do Mestre) tem de entrar no pedido.
+    historico = [
+        {
+            "fala": "o que sou?",
+            "revelacao": "O homem é duplo.",
+            "citacoes": ["ch-i-15"],
+            "foi_limite": False,
+        }
+    ]
+    llm = FakeLLM([_RESP])
+    Compositor(llm).compor(_DISC, _REC, historico=historico)
+    usuario = llm.chamadas[0].usuario
+    assert "DIÁLOGO" in usuario
+    assert "o que sou?" in usuario
+    assert "O homem é duplo." in usuario
+
+
+def test_compositor_sem_historico_nao_anuncia_dialogo():
+    # primeiro turno: nada de prometer um diálogo que não existe.
+    llm = FakeLLM([_RESP])
+    Compositor(llm).compor(_DISC, _REC)
+    assert "DIÁLOGO" not in llm.chamadas[0].usuario
+
+
 def test_compositor_parseia_movimentos():
     resp = json.dumps(
         {

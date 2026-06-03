@@ -42,11 +42,14 @@ class Oraculo:
         graus = self.memoria.ler_graus(buscador_id)
         discernimento = self._discernidor.discernir(fala, graus_memoria=graus)
         recuperacao = self._recuperador.recuperar(fala)
+        # o loop: os últimos ~6 turnos completos alimentam a voz do Mestre, para
+        # que avance (regra #7) em vez de re-sondar. É registro, não trava (lei nº3).
+        historico = self.memoria.ler_turnos(buscador_id)[-6:]
 
         violacoes: list[str] | None = None
         for _ in range(self._max_retries + 1):
             rascunho = self._compositor.compor(
-                discernimento, recuperacao, violacoes=violacoes
+                discernimento, recuperacao, violacoes=violacoes, historico=historico
             )
             veredito = self._verificador.verificar(rascunho, recuperacao)
             if veredito.aprovado:
@@ -56,6 +59,14 @@ class Oraculo:
                     foi_limite=False,
                     movimentos=[m.pedido for m in rascunho.movimentos],
                 )
+                # Reviver o grau (opção 1): o que o Mestre REVELOU funda-se numa
+                # passagem — esse assunto fica 'aberto'. 'integrado' é adiado: só
+                # o vivido o marcaria (lei nº3) e o pipeline não observa isso, então
+                # jamais o escrevemos aqui. Devolução/limite não citam → nada se abre.
+                for afirmacao in rascunho.afirmacoes:
+                    self.memoria.atualizar_grau(
+                        buscador_id, afirmacao.citacao_id, "aberto"
+                    )
                 self.memoria.registrar_turno(buscador_id, fala, final)
                 return final
             violacoes = veredito.violacoes
