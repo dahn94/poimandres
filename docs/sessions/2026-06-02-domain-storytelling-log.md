@@ -436,9 +436,17 @@ bem os versos novos. `LocalEmbeddings` passou a vetorizar em lotes (batch_size=8
 estouravam o MPS). Casos-ouro e2e agora derivam o `citacao_id` da recuperação real (robustos ao
 crescimento). **PENDENTE (usuário): proofreading da primária CH I contra o livro** — lei da fidelidade.
 
+**Afinação rodada 2 (commits `741f1e6`, `5bd6c61`):** (a) **limiar de silêncio ~1.15** (medido nas
+distâncias BGE-M3: relevante ≲1.0, fora-do-tema ≳1.33) — off-topic agora confessa silêncio (verificado
+ao vivo: "dieta" → o Mestre confessa silêncio e conduz); (b) **k_fundantes 6→10** (recall p/ fala oblíqua
+de leigo — §15 caía no rank 9) + instrução de **Nomeação** no Compositor. **Achado-chave:** o trilho da
+língua (Imagem→Nomeação→Glosa) só é executado de forma confiável pelo **Opus** — o Sonnet-econômico
+entra por imagem e devolve, sem nomear; o Opus nomeia o "homem essencial" fundado em §15, modulando o
+grau. Confirma: **iterar estrutura no Sonnet (grátis-quase), voz da Condução pede Opus** (design de produção).
+
 **PRÓXIMO:**
 - **Proofreading da primária CH I** (você, contra o livro) — corrigir qualquer artefato de extração.
-- (Opcional) Backend **local (Ollama)** p/ afinar de graça; continuar a **afinar os prompts** (modo econômico).
+- Continuar afinando (Discernidor/grau, mais probes) e/ou **Plano 3** (interface do círculo).
 - **Plano 3** — interface do círculo (FastAPI + chat web + chaves-de-convite).
 - (Opcional) Curadoria em massa do `material/erudito/`; futuramente o grafo de doutrina com a lógica
   paraconsistente (Belnap/da Costa) registrada em `logica-paraconsistente-tensoes`.
