@@ -101,3 +101,12 @@ def test_perguntar_em_thread_eventualmente_pronto():
             break
         time.sleep(0.1)
     assert p["estado"] == "pronto" and p["texto"] == "pronto via thread"
+
+
+def test_inicio_tem_caixa_de_fala_e_polling():
+    app = criar_app(_OraculoFake(turnos=()), em_thread=False)
+    html = TestClient(app).get("/").text
+    assert 'id="fala"' in html          # caixa de fala
+    assert "/perguntar" in html          # JS chama o endpoint
+    assert "/turno/" in html             # JS faz polling
+    assert "considera tua fala" in html  # estado de espera temático

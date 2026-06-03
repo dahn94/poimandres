@@ -1,1 +1,11 @@
-/* preenchido na Task 3 */
+body { max-width: 42rem; margin: 2rem auto; padding: 0 1rem;
+  font-family: Georgia, "Times New Roman", serif; line-height: 1.5; color: #2b2b2b; }
+h1 { font-weight: normal; letter-spacing: 0.1em; }
+#dialogo p { margin: 0.6rem 0; }
+.fala { color: #555; }
+.revelacao { white-space: pre-wrap; }
+.citacoes, .movimento { color: #8a6d3b; font-style: italic; font-size: 0.9em; }
+.espera { color: #999; font-style: italic; }
+.erro { color: #a33; font-style: italic; }
+#fala { width: 100%; padding: 0.6rem; font-family: inherit; font-size: 1rem;
+  border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }

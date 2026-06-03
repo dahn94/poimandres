@@ -15,5 +15,62 @@
       {% if t.citacoes %}<p class="citacoes">▸ funda em {{ t.citacoes | join(", ") }}</p>{% endif %}
     {% endfor %}
   </main>
+  <form id="forma">
+    <input id="fala" name="fala" autocomplete="off" placeholder="fala…" autofocus>
+  </form>
+  <script>
+    const dialogo = document.getElementById("dialogo");
+    const forma = document.getElementById("forma");
+    const campo = document.getElementById("fala");
+
+    function p(cls, html) {
+      const el = document.createElement("p");
+      el.className = cls;
+      el.innerHTML = html;
+      dialogo.appendChild(el);
+      el.scrollIntoView();
+      return el;
+    }
+    function escapar(s) {
+      const d = document.createElement("div");
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    forma.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const fala = campo.value.trim();
+      if (!fala) return;
+      campo.value = "";
+      campo.disabled = true;
+      p("fala", "<b>você:</b> " + escapar(fala));
+      const espera = p("espera", "⟡ o Mestre considera tua fala…");
+
+      const r = await fetch("/perguntar", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({fala}),
+      });
+      const {turno_id} = await r.json();
+
+      const timer = setInterval(async () => {
+        const s = await (await fetch("/turno/" + turno_id)).json();
+        if (s.estado === "considerando") return;
+        clearInterval(timer);
+        espera.remove();
+        if (s.estado === "erro") {
+          p("erro", "⟡ <b>Mestre:</b> (o limiar se turvou: " + escapar(s.msg) + ")");
+        } else if (s.foi_limite) {
+          p("revelacao", "⟡ <b>Mestre:</b> " + escapar(s.texto));
+        } else {
+          p("revelacao", "⟡ <b>Mestre:</b> " + escapar(s.texto));
+          if (s.citacoes.length) p("citacoes", "▸ funda em " + s.citacoes.map(escapar).join(", "));
+          s.movimentos.forEach(m => p("movimento", "→ " + escapar(m)));
+        }
+        campo.disabled = false;
+        campo.focus();
+      }, 2000);
+    });
+  </script>
 </body>
 </html>
