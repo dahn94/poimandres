@@ -27,7 +27,7 @@ class Recuperador:
         self,
         consulta: str,
         *,
-        k_fundantes: int = 6,
+        k_fundantes: int = 10,
         k_iluminantes: int = 4,
         limiar: float | None = None,
     ) -> Recuperacao:
