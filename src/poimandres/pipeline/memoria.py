@@ -18,7 +18,9 @@ class Memoria:
 
     def __init__(self, caminho: str) -> None:
         """Abre/cria o banco em ``caminho`` e garante o esquema."""
-        self._con = sqlite3.connect(caminho)
+        # check_same_thread=False: o turno web roda numa thread separada da que
+        # criou a conexão. Turnos são seriais (single-user), sem escrita concorrente.
+        self._con = sqlite3.connect(caminho, check_same_thread=False)
         self._con.execute(
             "CREATE TABLE IF NOT EXISTS turno ("
             "buscador_id TEXT NOT NULL, quando TEXT DEFAULT CURRENT_TIMESTAMP, "

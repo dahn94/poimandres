@@ -24,3 +24,23 @@ def test_graus_de_outro_buscador_nao_vazam(tmp_path):
     mem = Memoria(str(tmp_path / "estado.db"))
     mem.atualizar_grau("a", "morte", "aberto")
     assert mem.ler_graus("b") == {}
+
+
+def test_escreve_de_outra_thread(tmp_path):
+    # A conexão é criada na thread principal; o turno web roda numa thread.
+    import threading
+
+    mem = Memoria(str(tmp_path / "estado.db"))
+    erros = []
+
+    def escrever():
+        try:
+            mem.registrar_turno("b1", "fala", RevelacaoFinal(texto="x"))
+        except Exception as e:  # noqa: BLE001
+            erros.append(e)
+
+    t = threading.Thread(target=escrever)
+    t.start()
+    t.join()
+    assert erros == []
+    assert len(mem.ler_turnos("b1")) == 1
