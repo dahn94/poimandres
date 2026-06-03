@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Poimandres</title>
+  <link rel="stylesheet" href="/static/estilo.css">
+</head>
+<body>
+  <main id="dialogo">
+    <h1>Poimandres</h1>
+    {% for t in turnos %}
+      <p class="fala"><b>você:</b> {{ t.fala }}</p>
+      <p class="revelacao"><b>Mestre:</b> {{ t.revelacao }}</p>
+      {% if t.citacoes %}<p class="citacoes">▸ funda em {{ t.citacoes | join(", ") }}</p>{% endif %}
+    {% endfor %}
+  </main>
+</body>
+</html>
