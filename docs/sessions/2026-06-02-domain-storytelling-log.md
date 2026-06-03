@@ -428,8 +428,17 @@ evals — começa quando houver chave.**
   (devolver virou exceção), e recebe as 4 marcas no pedido. Resultado verificado: revela fundado em
   CH I §14/15/24/25, modula o grau e soma um Movimento. **Afinação é iterativa e continua.**
 
+**Corpus expandido ao Tratado I COMPLETO (commit `96aa7f6`):** primária CH I §1-31 verbatim (trad.
+David Pessoa de Lira, extração programática do PDF 2-colunas: filtra grego, fatia versos 1→31, apara
+cauda editorial entre tratados, preserva aparato `<...>`/`[...]`); erudição = comentário verso-a-verso
+do Vinicius (29 versos, só a prosa, não a tradução dele). **64 passagens** ingeridas; BGE-M3 recupera
+bem os versos novos. `LocalEmbeddings` passou a vetorizar em lotes (batch_size=8 — passagens longas
+estouravam o MPS). Casos-ouro e2e agora derivam o `citacao_id` da recuperação real (robustos ao
+crescimento). **PENDENTE (usuário): proofreading da primária CH I contra o livro** — lei da fidelidade.
+
 **PRÓXIMO:**
-- Continuar a **afinar os prompts** em modo econômico (Discernidor/Compositor/juiz), spot-check com `--opus`.
+- **Proofreading da primária CH I** (você, contra o livro) — corrigir qualquer artefato de extração.
+- (Opcional) Backend **local (Ollama)** p/ afinar de graça; continuar a **afinar os prompts** (modo econômico).
 - **Plano 3** — interface do círculo (FastAPI + chat web + chaves-de-convite).
 - (Opcional) Curadoria em massa do `material/erudito/`; futuramente o grafo de doutrina com a lógica
   paraconsistente (Belnap/da Costa) registrada em `logica-paraconsistente-tensoes`.
