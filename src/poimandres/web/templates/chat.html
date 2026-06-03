@@ -36,6 +36,7 @@
       d.textContent = s;
       return d.innerHTML;
     }
+    function liberar() { campo.disabled = false; campo.focus(); }
 
     forma.addEventListener("submit", async (ev) => {
       ev.preventDefault();
@@ -46,29 +47,40 @@
       p("fala", "<b>você:</b> " + escapar(fala));
       const espera = p("espera", "⟡ o Mestre considera tua fala…");
 
-      const r = await fetch("/perguntar", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({fala}),
-      });
-      const {turno_id} = await r.json();
+      let turno_id;
+      try {
+        const r = await fetch("/perguntar", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({fala}),
+        });
+        ({turno_id} = await r.json());
+      } catch (_) {
+        espera.remove();
+        p("erro", "⟡ <b>Mestre:</b> (a rede falhou no envio)");
+        liberar();
+        return;
+      }
 
       const timer = setInterval(async () => {
-        const s = await (await fetch("/turno/" + turno_id)).json();
+        let s;
+        try {
+          s = await (await fetch("/turno/" + turno_id)).json();
+        } catch (_) {
+          return;  // blip transitório — segue pollando
+        }
         if (s.estado === "considerando") return;
         clearInterval(timer);
         espera.remove();
         if (s.estado === "erro") {
           p("erro", "⟡ <b>Mestre:</b> (o limiar se turvou: " + escapar(s.msg) + ")");
-        } else if (s.foi_limite) {
-          p("revelacao", "⟡ <b>Mestre:</b> " + escapar(s.texto));
         } else {
+          // foi_limite (silêncio) cai aqui com citacoes/movimentos vazios → só o texto
           p("revelacao", "⟡ <b>Mestre:</b> " + escapar(s.texto));
-          if (s.citacoes.length) p("citacoes", "▸ funda em " + s.citacoes.map(escapar).join(", "));
-          s.movimentos.forEach(m => p("movimento", "→ " + escapar(m)));
+          (s.citacoes || []).length && p("citacoes", "▸ funda em " + s.citacoes.map(escapar).join(", "));
+          (s.movimentos || []).forEach(m => p("movimento", "→ " + escapar(m)));
         }
-        campo.disabled = false;
-        campo.focus();
+        liberar();
       }, 2000);
     });
   </script>
