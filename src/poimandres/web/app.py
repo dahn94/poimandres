@@ -57,7 +57,7 @@ def criar_app(oraculo, *, em_thread: bool = True) -> FastAPI:
             trabalho()
 
     @app.post("/perguntar")
-    def perguntar(payload: dict):
+    def perguntar(payload: dict | None = None):
         fala = (payload or {}).get("fala", "").strip()
         if not fala:
             return JSONResponse({"erro": "fala vazia"}, status_code=400)
@@ -71,6 +71,11 @@ def criar_app(oraculo, *, em_thread: bool = True) -> FastAPI:
         info = em_voo.get(turno_id)
         if info is None:
             return JSONResponse({"estado": "desconhecido"}, status_code=404)
+        if info["estado"] == "considerando":
+            return {"estado": "considerando"}
+        # Estado terminal (pronto|erro): entrega e descarta — mantém o em_voo
+        # limitado; o histórico durável vive na Memória.
+        em_voo.pop(turno_id, None)
         if info["estado"] == "pronto":
             f = info["final"]
             return {
@@ -80,8 +85,6 @@ def criar_app(oraculo, *, em_thread: bool = True) -> FastAPI:
                 "movimentos": list(f.movimentos),
                 "foi_limite": f.foi_limite,
             }
-        if info["estado"] == "erro":
-            return {"estado": "erro", "msg": info["msg"]}
-        return {"estado": "considerando"}
+        return {"estado": "erro", "msg": info["msg"]}
 
     return app
