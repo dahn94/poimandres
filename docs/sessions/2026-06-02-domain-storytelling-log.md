@@ -463,6 +463,28 @@ na thread principal mas o turno roda em thread daemon; `check_same_thread=False`
 sem contenção). Os testes verdes não pegaram porque usam `em_thread=False`/oráculo fake. Smoke real
 (`poimandres servir`) é manual (gasta API).
 
+**Loop + reviver o grau (commit `d784a97`, TDD, suíte 92 verdes):** duas metades de
+continuidade do diálogo, ambas fiéis às leis.
+- **Loop** — a regra #7 do Mestre (no `_SISTEMA` do Compositor) prometia "o DIÁLOGO
+  até aqui é dado abaixo", mas o Compositor **nunca recebia histórico**: o prompt
+  mandava o Mestre olhar abaixo um diálogo ausente (promessa vazia). Agora
+  `compor(..., historico=)` renderiza os **últimos ~6 turnos completos** (Buscador +
+  Mestre) sob `DIÁLOGO ATÉ AQUI`, e o orquestrador os lê da Memória (`ler_turnos[-6:]`).
+  Sem histórico, nada de anunciar diálogo inexistente. É registro, não trava (lei nº3).
+- **Grau** — o laço órfão fechado: `atualizar_grau`/`ler_graus` existiam, mas só se
+  *lia* (alimentando o Discernidor); ninguém *escrevia*. Decisão de domínio = **opção 1**
+  ("o mais robusto" = menos modos de falha sob as leis): **`aberto` ao revelar** —
+  para cada afirmação verificada, o assunto da fundante fica aberto (`tema = citacao_id`,
+  o único fato que o turno observa; preservar a identidade do assunto descartou a opção 3
+  de chavear por `grau=N`). **`integrado` ADIADO** — jamais auto-escrito: só o *vivido*
+  o marcaria (lei nº3) e o pipeline não testemunha isso; marcá-lo no retorno seria
+  escrever uma mentira na Memória que voltaria como sinal ao Discernidor (infidelidade
+  auto-alimentada — o pior bug num oráculo que existe para ser fiel). Limite/devolução
+  não citam → nada se abre.
+- **Guarda do invariante:** `test_retorno_nao_promove_a_integrado` — voltar e reabrir o
+  mesmo assunto permanece `aberto`. A promoção a `integrado` fica para um sinal explícito
+  futuro (não um threshold inventado).
+
 **PRÓXIMO:**
 - Smoke manual do `servir` (você, com chave) e, se quiser, **Plano 3b** (convites + tabela buscador +
   multiusuário + deploy na VPS + streaming de etapas); ou mais afinação / mais corpus.
