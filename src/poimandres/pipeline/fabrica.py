@@ -85,6 +85,39 @@ def montar_oraculo(
     )
 
 
+def montar_oraculo_local(
+    *,
+    store: CorpusStore,
+    db_memoria: str,
+    base_url: str | None = None,
+    modelo: str = _MODELO_LOCAL,
+    max_tokens: int = 4096,
+    **kwargs,
+) -> Oraculo:
+    """Preset LOCAL: todos os papéis na Gemma 4 (offline, $0). Thinking só no Compositor.
+
+    ``base_url`` resolve por plataforma/env quando ``None`` (ver :func:`resolver_url_local`).
+    Os rótulos ``"mestre"``/``"rapido"`` (passados a ``fazer_llm`` pelo ``montar_oraculo``)
+    só decidem ``pensar``; o modelo servido é o mesmo ``modelo`` em todos os papéis.
+    ``**kwargs`` repassa o resto (ex.: ``max_retries``, ``limiar``).
+    """
+    url = resolver_url_local(base_url)
+
+    def fazer_llm(papel: str) -> LLMBackend:
+        return LocalLLM(
+            base_url=url, modelo=modelo, pensar=(papel == "mestre"), max_tokens=max_tokens
+        )
+
+    return montar_oraculo(
+        store=store,
+        db_memoria=db_memoria,
+        modelo_mestre="mestre",
+        modelo_rapido="rapido",
+        fazer_llm=fazer_llm,
+        **kwargs,
+    )
+
+
 def montar_oraculo_economico(
     *, store: CorpusStore, db_memoria: str, **kwargs
 ) -> Oraculo:
