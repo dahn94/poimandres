@@ -9,6 +9,8 @@ futuro — é questão de configuração, sem tocar nas unidades.
 from __future__ import annotations
 
 import anthropic
+import json
+import openai
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -121,3 +123,66 @@ class ClaudeLLM:
                 f"ClaudeLLM: resposta sem bloco de texto — conteúdo: {resposta.content!r}"
             )
         return texto
+
+
+class LocalLLM:
+    """Backend de LLM local via servidor OpenAI-compatible (mlx-lm no Mac, vLLM no Linux).
+
+    Mesmo contrato ``LLMBackend`` do ``FakeLLM``/``ClaudeLLM``. Uma só classe serve
+    aos dois runtimes — o toggle de plataforma é apenas o ``base_url``. Quando o
+    pedido traz ``schema``, embute-o no prompt (garantia portável) **e** pede
+    ``response_format=json_schema`` (vLLM impõe por guided-decoding; mlx-lm, quando
+    suporta, reforça). ``pensar`` liga o canal de raciocínio da Gemma 4 (Compositor);
+    a saída é sempre limpa para JSON puro quando há schema.
+    """
+
+    def __init__(
+        self,
+        *,
+        base_url: str,
+        modelo: str,
+        pensar: bool = False,
+        max_tokens: int = 4096,
+        temperature: float = 1.0,
+        top_p: float = 0.95,
+        top_k: int = 64,
+    ) -> None:
+        self._client = openai.OpenAI(base_url=base_url, api_key="sk-local")
+        self._modelo = modelo
+        self._pensar = pensar
+        self._max_tokens = max_tokens
+        self._temperature = temperature
+        self._top_p = top_p
+        self._top_k = top_k
+
+    def gerar(self, pedido: PedidoLLM) -> str:
+        sistema = pedido.sistema
+        kwargs: dict = {
+            "model": self._modelo,
+            "max_tokens": self._max_tokens,
+            "temperature": self._temperature,
+            "top_p": self._top_p,
+            "extra_body": {
+                "chat_template_kwargs": {"enable_thinking": self._pensar},
+                "top_k": self._top_k,
+            },
+        }
+        if pedido.schema is not None:
+            sistema = (
+                f"{sistema}\n\nResponda SOMENTE com um objeto JSON válido conforme "
+                f"este schema, sem texto fora do JSON e sem cercas de código:\n"
+                f"{json.dumps(pedido.schema, ensure_ascii=False)}"
+            )
+            kwargs["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {"name": "resposta", "schema": pedido.schema},
+            }
+        kwargs["messages"] = [
+            {"role": "system", "content": sistema},
+            {"role": "user", "content": pedido.usuario},
+        ]
+        resposta = self._client.chat.completions.create(**kwargs)
+        bruto = resposta.choices[0].message.content or ""
+        if pedido.schema is not None:
+            return _extrair_json(bruto)
+        return _limpar_pensamento(bruto).strip()
