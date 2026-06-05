@@ -106,3 +106,31 @@ def test_claudellm_falha_sem_bloco_de_texto(monkeypatch):
     monkeypatch.setattr(llm_mod.anthropic, "Anthropic", lambda: _ClientSoThinking())
     with pytest.raises(RuntimeError):
         llm_mod.ClaudeLLM("claude-opus-4-8").gerar(PedidoLLM(sistema="s", usuario="u"))
+
+
+def test_extrair_json_remove_pensamento_e_cercas():
+    from poimandres.pipeline.llm import _extrair_json
+
+    bruto = '<|channel>thought\no buscador pergunta { algo }\n<channel|>\n```json\n{"ok": true}\n```'
+    assert _extrair_json(bruto) == '{"ok": true}'
+
+
+def test_extrair_json_objeto_simples():
+    from poimandres.pipeline.llm import _extrair_json
+
+    assert _extrair_json('{"a": 1, "b": [2, 3]}') == '{"a": 1, "b": [2, 3]}'
+
+
+def test_extrair_json_sem_objeto_falha_alto():
+    import pytest
+
+    from poimandres.pipeline.llm import _extrair_json
+
+    with pytest.raises(RuntimeError):
+        _extrair_json("não há JSON aqui")
+
+
+def test_limpar_pensamento_sem_canal_devolve_intacto():
+    from poimandres.pipeline.llm import _limpar_pensamento
+
+    assert _limpar_pensamento("texto simples") == "texto simples"

@@ -34,6 +34,29 @@ class LLMBackend(Protocol):
     def gerar(self, pedido: PedidoLLM) -> str: ...
 
 
+def _limpar_pensamento(texto: str) -> str:
+    """Descarta o canal de pensamento da Gemma 4 (tudo até o último ``<channel|>``)."""
+    if "<channel|>" in texto:
+        return texto.rsplit("<channel|>", 1)[1]
+    return texto
+
+
+def _extrair_json(texto: str) -> str:
+    """Devolve só o objeto JSON externo da saída (remove pensamento, cercas, prosa).
+
+    Os papéis do pipeline fazem ``json.loads`` direto neste retorno; um modelo
+    local pode embrulhar o JSON em ``<channel|>``/```` ```json ````/prosa, então
+    recortamos do primeiro ``{`` ao último ``}``. Sem objeto, erra alto (não passa
+    em falso, espelhando o ``RuntimeError`` do ``ClaudeLLM``).
+    """
+    corpo = _limpar_pensamento(texto)
+    ini = corpo.find("{")
+    fim = corpo.rfind("}")
+    if ini == -1 or fim == -1 or fim < ini:
+        raise RuntimeError(f"LocalLLM: resposta sem objeto JSON — {texto!r}")
+    return corpo[ini : fim + 1]
+
+
 class FakeLLM:
     """LLM roteirizado para testes: devolve respostas pré-definidas, em ordem.
 
