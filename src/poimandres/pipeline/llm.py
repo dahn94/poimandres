@@ -39,27 +39,63 @@ class LLMBackend(Protocol):
     def gerar(self, pedido: PedidoLLM) -> str: ...
 
 
+# Marcadores de FIM-de-pensamento / início-da-resposta-final usados pelas famílias
+# de modelos locais. A resposta final vem DEPOIS do último deles. Cobrimos as três
+# variações em circulação porque o token exato da Gemma 4 só se confirma no smoke
+# real: ``</think>`` (estilo think), ``<|message|>`` (Harmony: ``<|channel|>…<|message|>``)
+# e ``<channel|>`` (forma do material da Unsloth). Ficar com o conteúdo após o último
+# marcador descarta o raciocínio sem depender de adivinhar um único formato.
+_FIM_PENSAMENTO = ("</think>", "<|message|>", "<channel|>", "<|channel|>")
+
+
 def _limpar_pensamento(texto: str) -> str:
-    """Descarta o canal de pensamento da Gemma 4 (tudo até o último ``<channel|>``)."""
-    if "<channel|>" in texto:
-        return texto.rsplit("<channel|>", 1)[1]
-    return texto
+    """Descarta o canal de pensamento: devolve o conteúdo após o último marcador de fim.
+
+    Sem nenhum marcador conhecido, devolve o texto intacto (modelo não pensou, ou
+    a resposta já é a final).
+    """
+    corte = -1
+    apos = 0
+    for marcador in _FIM_PENSAMENTO:
+        i = texto.rfind(marcador)
+        if i > corte:
+            corte = i
+            apos = i + len(marcador)
+    return texto[apos:] if corte != -1 else texto
 
 
 def _extrair_json(texto: str) -> str:
-    """Devolve só o objeto JSON externo da saída (remove pensamento, cercas, prosa).
+    """Devolve só o primeiro objeto JSON BALANCEADO da saída (após tirar o pensamento).
 
-    Os papéis do pipeline fazem ``json.loads`` direto neste retorno; um modelo
-    local pode embrulhar o JSON em ``<channel|>``/```` ```json ````/prosa, então
-    recortamos do primeiro ``{`` ao último ``}``. Sem objeto, erra alto (não passa
-    em falso, espelhando o ``RuntimeError`` do ``ClaudeLLM``).
+    Os papéis do pipeline fazem ``json.loads`` direto neste retorno; um modelo local
+    pode embrulhar o JSON em canal-de-pensamento/```` ```json ````/prosa. Removido o
+    pensamento, varremos do primeiro ``{`` até a chave que o fecha, contando a
+    profundidade e ignorando chaves dentro de strings (uma ``"frase": "tem } aqui"``
+    não engana a varredura). Sem objeto completo, erra alto (não passa em falso,
+    espelhando o ``RuntimeError`` do ``ClaudeLLM``).
     """
     corpo = _limpar_pensamento(texto)
     ini = corpo.find("{")
-    fim = corpo.rfind("}")
-    if ini == -1 or fim == -1 or fim < ini:
-        raise RuntimeError(f"LocalLLM: resposta sem objeto JSON — {texto!r}")
-    return corpo[ini : fim + 1]
+    if ini != -1:
+        profundidade = 0
+        em_string = False
+        escape = False
+        for i in range(ini, len(corpo)):
+            c = corpo[i]
+            if escape:
+                escape = False
+            elif c == "\\":
+                escape = True
+            elif c == '"':
+                em_string = not em_string
+            elif not em_string:
+                if c == "{":
+                    profundidade += 1
+                elif c == "}":
+                    profundidade -= 1
+                    if profundidade == 0:
+                        return corpo[ini : i + 1]
+    raise RuntimeError(f"LocalLLM: resposta sem objeto JSON completo — {texto!r}")
 
 
 class FakeLLM:

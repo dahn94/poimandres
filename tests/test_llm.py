@@ -115,6 +115,33 @@ def test_extrair_json_remove_pensamento_e_cercas():
     assert _extrair_json(bruto) == '{"ok": true}'
 
 
+def test_extrair_json_formato_think():
+    # Estilo <think>…</think>: o pensamento (com chaves) vem antes do JSON final.
+    from poimandres.pipeline.llm import _extrair_json
+
+    bruto = "<think>penso em { isto } e naquilo</think>{\"ok\": true}"
+    assert _extrair_json(bruto) == '{"ok": true}'
+
+
+def test_extrair_json_formato_harmony():
+    # Harmony: <|channel|>analysis<|message|>…<|channel|>final<|message|>{json}
+    from poimandres.pipeline.llm import _extrair_json
+
+    bruto = (
+        "<|channel|>analysis<|message|>rascunho { x }"
+        '<|channel|>final<|message|>{"ok": true}'
+    )
+    assert _extrair_json(bruto) == '{"ok": true}'
+
+
+def test_extrair_json_chave_dentro_de_string_nao_engana():
+    # Uma chave } dentro de uma string não fecha o objeto cedo demais.
+    from poimandres.pipeline.llm import _extrair_json
+
+    bruto = '{"frase": "tem } aqui", "ok": true}'
+    assert _extrair_json(bruto) == '{"frase": "tem } aqui", "ok": true}'
+
+
 def test_extrair_json_objeto_simples():
     from poimandres.pipeline.llm import _extrair_json
 
