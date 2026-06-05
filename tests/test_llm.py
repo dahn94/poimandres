@@ -162,9 +162,8 @@ class _FakeCompletions:
 
 
 class _FakeOpenAIClient:
-    def __init__(self, rec, content, ctor):
+    def __init__(self, rec, content):
         self.chat = type("C", (), {"completions": _FakeCompletions(rec, content)})()
-        self._ctor = ctor
 
 
 def _patch_openai(monkeypatch, content):
@@ -176,7 +175,7 @@ def _patch_openai(monkeypatch, content):
 
     def fabricar(**kw):
         ctor.update(kw)
-        return _FakeOpenAIClient(chamadas, content, ctor)
+        return _FakeOpenAIClient(chamadas, content)
 
     monkeypatch.setattr(llm_mod.openai, "OpenAI", fabricar)
     return chamadas, ctor
@@ -201,6 +200,7 @@ def test_localllm_monta_request_com_schema_e_thinking(monkeypatch):
     assert req["extra_body"]["chat_template_kwargs"]["enable_thinking"] is True
     assert req["extra_body"]["top_k"] == 64
     assert req["response_format"]["type"] == "json_schema"
+    assert req["response_format"]["json_schema"]["strict"] is True
     assert req["response_format"]["json_schema"]["schema"] == {"type": "object"}
     assert "as leis" in req["messages"][0]["content"]
     assert '"type": "object"' in req["messages"][0]["content"]

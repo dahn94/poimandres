@@ -2,14 +2,16 @@
 
 Espelha o par ``EmbeddingsBackend``/``FakeEmbeddings`` do subsistema do corpus:
 o pipeline depende só da interface :class:`LLMBackend`, de modo que trocar o
-``FakeLLM`` (testes) pelo Claude real (Plano 2b) — ou por um modelo local no
-futuro — é questão de configuração, sem tocar nas unidades.
+``FakeLLM`` (testes) pelo Claude real (:class:`ClaudeLLM`) — ou pelo
+:class:`LocalLLM` (Gemma 4 via servidor OpenAI-compatible) — é questão de
+configuração, sem tocar nas unidades.
 """
 
 from __future__ import annotations
 
-import anthropic
 import json
+
+import anthropic
 import openai
 from dataclasses import dataclass
 from typing import Protocol
@@ -21,8 +23,9 @@ class PedidoLLM:
 
     No Plano 2a o ``FakeLLM`` ignora o conteúdo e devolve respostas roteirizadas;
     no 2b o ``ClaudeLLM`` usa ``schema`` (quando presente) para forçar saída
-    estruturada via ``output_config.format``. ``schema`` é um JSON Schema; um
-    backend local futuro pode embuti-lo no prompt em vez de usar o recurso nativo.
+    estruturada via ``output_config.format``. ``schema`` é um JSON Schema; o
+    ``LocalLLM`` embute-o no prompt (e pede ``response_format``) em vez do recurso
+    nativo.
     """
 
     sistema: str
@@ -147,6 +150,7 @@ class LocalLLM:
         top_p: float = 0.95,
         top_k: int = 64,
     ) -> None:
+        # mlx-lm e vLLM ignoram a chave; o cliente openai a exige, então é um placeholder.
         self._client = openai.OpenAI(base_url=base_url, api_key="sk-local")
         self._modelo = modelo
         self._pensar = pensar
@@ -175,7 +179,11 @@ class LocalLLM:
             )
             kwargs["response_format"] = {
                 "type": "json_schema",
-                "json_schema": {"name": "resposta", "schema": pedido.schema},
+                "json_schema": {
+                    "name": "resposta",
+                    "strict": True,
+                    "schema": pedido.schema,
+                },
             }
         kwargs["messages"] = [
             {"role": "system", "content": sistema},
