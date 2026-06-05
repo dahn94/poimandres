@@ -136,3 +136,22 @@ def montar_oraculo_economico(
         max_tokens=2048,
         **kwargs,
     )
+
+
+def montar_por_ambiente(
+    *,
+    store: CorpusStore,
+    db_memoria: str,
+    economico: bool = True,
+    base_url: str | None = None,
+) -> Oraculo:
+    """Escolhe o backend por ``POIMANDRES_LLM`` (``claude``|``local``; default ``claude``).
+
+    ``local`` → :func:`montar_oraculo_local` (Gemma 4). ``claude`` → preset econômico
+    (Sonnet) ou, com ``economico=False``, produção (Opus). Ponto único de toggle que a
+    CLI usa, amigável a Docker (só troca env).
+    """
+    if os.environ.get("POIMANDRES_LLM", "claude").lower() == "local":
+        return montar_oraculo_local(store=store, db_memoria=db_memoria, base_url=base_url)
+    montar = montar_oraculo_economico if economico else montar_oraculo
+    return montar(store=store, db_memoria=db_memoria)

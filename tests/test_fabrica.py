@@ -86,3 +86,43 @@ def test_oraculo_local_pensa_so_no_compositor(tmp_path, monkeypatch):
     assert [c["pensar"] for c in construidos] == [False, True, False]
     assert all(c["base_url"] == "http://x:8080/v1" for c in construidos)
     assert all(c["modelo"] == "gemma-4-26b-a4b" for c in construidos)
+
+
+def test_por_ambiente_local_quando_env_local(tmp_path, monkeypatch):
+    from poimandres.pipeline import fabrica
+
+    chamado = {}
+
+    def fake_local(*, store, db_memoria, base_url=None):
+        chamado["local"] = base_url
+        return "ORACULO_LOCAL"
+
+    monkeypatch.setattr(fabrica, "montar_oraculo_local", fake_local)
+    monkeypatch.setenv("POIMANDRES_LLM", "local")
+    store = CorpusStore(str(tmp_path / "c.lance"), FakeEmbeddings())
+
+    out = fabrica.montar_por_ambiente(store=store, db_memoria="x", base_url="http://u/v1")
+    assert out == "ORACULO_LOCAL"
+    assert chamado["local"] == "http://u/v1"
+
+
+def test_por_ambiente_claude_default_respeita_economico(tmp_path, monkeypatch):
+    from poimandres.pipeline import fabrica
+
+    escolhido = {}
+
+    def fake_eco(*, store, db_memoria):
+        escolhido["modo"] = "economico"
+        return "ECO"
+
+    def fake_opus(*, store, db_memoria):
+        escolhido["modo"] = "opus"
+        return "OPUS"
+
+    monkeypatch.setattr(fabrica, "montar_oraculo_economico", fake_eco)
+    monkeypatch.setattr(fabrica, "montar_oraculo", fake_opus)
+    monkeypatch.delenv("POIMANDRES_LLM", raising=False)
+    store = CorpusStore(str(tmp_path / "c.lance"), FakeEmbeddings())
+
+    assert fabrica.montar_por_ambiente(store=store, db_memoria="x") == "ECO"
+    assert fabrica.montar_por_ambiente(store=store, db_memoria="x", economico=False) == "OPUS"
