@@ -91,11 +91,14 @@ def perguntar(fala: str, buscador: str, db: str, economico: bool) -> None:
     Usa o índice em ``--db``. Por padrão roda em modo ``--economico`` (barato);
     use ``--opus`` para a voz plena do Mestre (mais caro).
     """
-    from poimandres.pipeline.fabrica import montar_oraculo, montar_oraculo_economico
+    from poimandres.pipeline import fabrica
 
-    montar = montar_oraculo_economico if economico else montar_oraculo
     store = CorpusStore(db, _fazer_embeddings())
-    oraculo = montar(store=store, db_memoria=str(Path(db).parent / "estado.db"))
+    oraculo = fabrica.montar_por_ambiente(
+        store=store,
+        db_memoria=str(Path(db).parent / "estado.db"),
+        economico=economico,
+    )
     final = oraculo.consultar(buscador, fala)
     if final.foi_limite:
         click.echo(f"[limite] {final.texto}")
@@ -114,24 +117,29 @@ def perguntar(fala: str, buscador: str, db: str, economico: bool) -> None:
     show_default=True,
     help="Modo barato (Sonnet) ou voz plena (Opus) — cada turno custa via Claude API.",
 )
+@click.option("--host", default="127.0.0.1", show_default=True)
 @click.option("--porta", default=8000, show_default=True)
 @click.option("--db", default=_DB_PADRAO, show_default=True)
-def servir(economico: bool, porta: int, db: str) -> None:
-    """Sobe o chat web local do oráculo em http://127.0.0.1:<porta>.
+def servir(economico: bool, host: str, porta: int, db: str) -> None:
+    """Sobe o chat web local do oráculo em http://<host>:<porta>.
 
     Requer credencial Anthropic (``ANTHROPIC_API_KEY`` ou ``ant auth login``) e o
     índice em ``--db`` já ingerido. Buscador único (sem auth) — Plano 3a.
     """
+    import os as _os
     import uvicorn
 
-    from poimandres.pipeline.fabrica import montar_oraculo, montar_oraculo_economico
+    from poimandres.pipeline import fabrica
     from poimandres.web import criar_app
 
-    montar = montar_oraculo_economico if economico else montar_oraculo
     store = CorpusStore(db, _fazer_embeddings())
-    oraculo = montar(store=store, db_memoria=str(Path(db).parent / "estado.db"))
-    click.echo(
-        f"Poimandres no ar em http://127.0.0.1:{porta}  (modo: "
-        f"{'econômico' if economico else 'opus'})"
+    oraculo = fabrica.montar_por_ambiente(
+        store=store,
+        db_memoria=str(Path(db).parent / "estado.db"),
+        economico=economico,
     )
-    uvicorn.run(criar_app(oraculo), host="127.0.0.1", port=porta)
+    backend = "local" if _os.environ.get("POIMANDRES_LLM", "claude").lower() == "local" else (
+        "opus" if not economico else "econômico"
+    )
+    click.echo(f"Poimandres no ar em http://{host}:{porta}  (backend: {backend})")
+    uvicorn.run(criar_app(oraculo), host=host, port=porta)
