@@ -11,12 +11,14 @@ os testes não toquem a rede.
 
 from __future__ import annotations
 
+import os
+import platform
 from collections.abc import Callable
 
 from poimandres.corpus.store import CorpusStore
 from poimandres.pipeline.compositor import Compositor
 from poimandres.pipeline.discernidor import Discernidor
-from poimandres.pipeline.llm import ClaudeLLM, LLMBackend
+from poimandres.pipeline.llm import ClaudeLLM, LLMBackend, LocalLLM
 from poimandres.pipeline.memoria import Memoria
 from poimandres.pipeline.orquestrador import Oraculo
 from poimandres.pipeline.recuperador import Recuperador
@@ -24,6 +26,19 @@ from poimandres.pipeline.verificador import Verificador
 
 _MODELO_MESTRE = "claude-opus-4-8"
 _MODELO_RAPIDO = "claude-sonnet-4-6"
+_MODELO_LOCAL = "gemma-4-26b-a4b"
+
+
+def endpoint_local_padrao() -> str:
+    """URL default do servidor local por plataforma: Mac→mlx-lm :8080, Linux→vLLM :8000."""
+    if platform.system() == "Darwin":
+        return "http://127.0.0.1:8080/v1"
+    return "http://127.0.0.1:8000/v1"
+
+
+def resolver_url_local(base_url: str | None = None) -> str:
+    """Precedência: argumento explícito > ``POIMANDRES_LOCAL_URL`` > default por plataforma."""
+    return base_url or os.environ.get("POIMANDRES_LOCAL_URL") or endpoint_local_padrao()
 
 
 def montar_oraculo(
