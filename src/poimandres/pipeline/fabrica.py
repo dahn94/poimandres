@@ -11,12 +11,14 @@ os testes não toquem a rede.
 
 from __future__ import annotations
 
+import os
+import platform
 from collections.abc import Callable
 
 from poimandres.corpus.store import CorpusStore
 from poimandres.pipeline.compositor import Compositor
 from poimandres.pipeline.discernidor import Discernidor
-from poimandres.pipeline.llm import ClaudeLLM, LLMBackend
+from poimandres.pipeline.llm import ClaudeLLM, LLMBackend, LocalLLM
 from poimandres.pipeline.memoria import Memoria
 from poimandres.pipeline.orquestrador import Oraculo
 from poimandres.pipeline.recuperador import Recuperador
@@ -24,6 +26,19 @@ from poimandres.pipeline.verificador import Verificador
 
 _MODELO_MESTRE = "claude-opus-4-8"
 _MODELO_RAPIDO = "claude-sonnet-4-6"
+_MODELO_LOCAL = "gemma-4-26b-a4b"
+
+
+def endpoint_local_padrao() -> str:
+    """URL default do servidor local por plataforma: Mac→mlx-lm :8080, Linux→vLLM :8000."""
+    if platform.system() == "Darwin":
+        return "http://127.0.0.1:8080/v1"
+    return "http://127.0.0.1:8000/v1"
+
+
+def resolver_url_local(base_url: str | None = None) -> str:
+    """Precedência: argumento explícito > ``POIMANDRES_LOCAL_URL`` > default por plataforma."""
+    return base_url or os.environ.get("POIMANDRES_LOCAL_URL") or endpoint_local_padrao()
 
 
 def montar_oraculo(
@@ -70,6 +85,39 @@ def montar_oraculo(
     )
 
 
+def montar_oraculo_local(
+    *,
+    store: CorpusStore,
+    db_memoria: str,
+    base_url: str | None = None,
+    modelo: str = _MODELO_LOCAL,
+    max_tokens: int = 4096,
+    **kwargs,
+) -> Oraculo:
+    """Preset LOCAL: todos os papéis na Gemma 4 (offline, $0). Thinking só no Compositor.
+
+    ``base_url`` resolve por plataforma/env quando ``None`` (ver :func:`resolver_url_local`).
+    Os rótulos ``"mestre"``/``"rapido"`` (passados a ``fazer_llm`` pelo ``montar_oraculo``)
+    só decidem ``pensar``; o modelo servido é o mesmo ``modelo`` em todos os papéis.
+    ``**kwargs`` repassa o resto (ex.: ``max_retries``, ``limiar``).
+    """
+    url = resolver_url_local(base_url)
+
+    def fazer_llm(papel: str) -> LLMBackend:
+        return LocalLLM(
+            base_url=url, modelo=modelo, pensar=(papel == "mestre"), max_tokens=max_tokens
+        )
+
+    return montar_oraculo(
+        store=store,
+        db_memoria=db_memoria,
+        modelo_mestre="mestre",
+        modelo_rapido="rapido",
+        fazer_llm=fazer_llm,
+        **kwargs,
+    )
+
+
 def montar_oraculo_economico(
     *, store: CorpusStore, db_memoria: str, **kwargs
 ) -> Oraculo:
@@ -88,3 +136,22 @@ def montar_oraculo_economico(
         max_tokens=2048,
         **kwargs,
     )
+
+
+def montar_por_ambiente(
+    *,
+    store: CorpusStore,
+    db_memoria: str,
+    economico: bool = True,
+    base_url: str | None = None,
+) -> Oraculo:
+    """Escolhe o backend por ``POIMANDRES_LLM`` (``claude``|``local``; default ``claude``).
+
+    ``local`` → :func:`montar_oraculo_local` (Gemma 4). ``claude`` → preset econômico
+    (Sonnet) ou, com ``economico=False``, produção (Opus). Ponto único de toggle que a
+    CLI usa, amigável a Docker (só troca env).
+    """
+    if os.environ.get("POIMANDRES_LLM", "claude").lower() == "local":
+        return montar_oraculo_local(store=store, db_memoria=db_memoria, base_url=base_url)
+    montar = montar_oraculo_economico if economico else montar_oraculo
+    return montar(store=store, db_memoria=db_memoria)

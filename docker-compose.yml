@@ -1,0 +1,26 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      POIMANDRES_LLM: ${POIMANDRES_LLM:-claude}
+      POIMANDRES_LOCAL_URL: ${POIMANDRES_LOCAL_URL:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Perfil GPU (Linux): sobe junto com `docker compose --profile gpu up`.
+  # No Mac, NÃO use este perfil — o mlx-lm roda no host (scripts/servidor-mlx.sh)
+  # e o app o alcança via POIMANDRES_LOCAL_URL=http://host.docker.internal:8080/v1
+  vllm:
+    image: vllm/vllm-openai:latest
+    profiles: ["gpu"]
+    command: ["--model", "google/gemma-4-26b-a4b-it", "--port", "8000"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: ["gpu"]

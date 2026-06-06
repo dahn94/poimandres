@@ -1,0 +1,10 @@
+.git
+.venv
+.pytest_cache
+.poimandres
+**/__pycache__
+tests
+evals
+docs
+material
+*.lance

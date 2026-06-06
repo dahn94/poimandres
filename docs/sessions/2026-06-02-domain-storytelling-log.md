@@ -485,6 +485,27 @@ continuidade do diálogo, ambas fiéis às leis.
   mesmo assunto permanece `aberto`. A promoção a `integrado` fica para um sinal explícito
   futuro (não um threshold inventado).
 
+**Backend LLM local (Gemma 4) — FEITO (branch `feature/llm-local`, TDD, subagent-driven, 106 testes verdes):**
+híbrido com toggle. Spec `docs/superpowers/specs/2026-06-05-poimandres-llm-local-design.md`;
+plano `docs/superpowers/plans/2026-06-05-poimandres-llm-local.md`; quickstart `docs/llm-local.md`.
+- **`LocalLLM`** (`pipeline/llm.py`) — cliente OpenAI-compatible; uma classe serve aos dois
+  runtimes (mlx-lm no Mac/Metal, vLLM no Linux/GPU), o toggle de plataforma é só o `base_url`.
+  Quando há `schema`: embute-o no prompt **e** pede `response_format=json_schema` com `strict`
+  (vLLM impõe por guided-decoding; os 3 schemas são strict-compat). Saída sempre limpa p/ JSON
+  (`_extrair_json` tira canal de pensamento/cercas; erra alto sem objeto). `pensar` liga a
+  thinking da Gemma.
+- **`montar_oraculo_local`** (`pipeline/fabrica.py`) — Gemma em todos os papéis; thinking **só no
+  Compositor** (rótulos `mestre`/`rapido` decidem `pensar`; modelo servido é o mesmo). Helpers
+  `endpoint_local_padrao` (Mac:8080/Linux:8000) e `resolver_url_local` (arg > `POIMANDRES_LOCAL_URL`
+  > default). **`montar_por_ambiente`** = toggle por `POIMANDRES_LLM` (claude|local).
+- **CLI** — `perguntar`/`servir` via `montar_por_ambiente`; `servir --host` (p/ Docker bindar 0.0.0.0).
+- **Operação** — `scripts/servidor-mlx.sh` (mlx-lm no host + `iogpu.wired_limit_mb`); `Dockerfile` +
+  `docker-compose.yml` (perfil `gpu` com `vllm/vllm-openai`; `host.docker.internal` p/ o mlx-lm do host).
+- **Modelo recomendado no M4 Pro 24 GB:** 26B-A4B MLX-4bit (fallback 12B Q8). Testes 100% sem rede
+  (monkeypatch do cliente openai); smoke real da Gemma é manual, como o do BGE-M3.
+- **Limitação conhecida:** o container do app não traz índice ingerido (`.poimandres/*.lance`) — provisão
+  de corpus no deploy é Plano 3b. **PENDENTE (você):** smoke real com a Gemma servindo; decidir merge da branch.
+
 **PRÓXIMO:**
 - Smoke manual do `servir` (você, com chave) e, se quiser, **Plano 3b** (convites + tabela buscador +
   multiusuário + deploy na VPS + streaming de etapas); ou mais afinação / mais corpus.

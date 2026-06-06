@@ -42,3 +42,68 @@ def test_servir_listado_no_help():
     assert "--economico" in res.output
     assert "--opus" in res.output
     assert "--porta" in res.output
+
+
+def test_perguntar_usa_montar_por_ambiente(tmp_path, monkeypatch):
+    from click.testing import CliRunner
+
+    from poimandres import cli as cli_mod
+    from poimandres.corpus.embeddings import FakeEmbeddings
+    from poimandres.pipeline import fabrica
+
+    class _FinalFake:
+        foi_limite = False
+        texto = "eis a revelação"
+        citacoes = ["ch-i-15"]
+        movimentos = []
+
+    class _OraculoFake:
+        def consultar(self, buscador, fala):
+            return _FinalFake()
+
+    visto = {}
+
+    def fake_por_ambiente(*, store, db_memoria, economico=True, base_url=None):
+        visto["economico"] = economico
+        return _OraculoFake()
+
+    monkeypatch.setattr(cli_mod, "_fazer_embeddings", lambda: FakeEmbeddings())
+    monkeypatch.setattr(fabrica, "montar_por_ambiente", fake_por_ambiente)
+
+    res = CliRunner().invoke(
+        cli_mod.cli, ["perguntar", "quem sou?", "--db", str(tmp_path / "c.lance")]
+    )
+    assert res.exit_code == 0, res.output
+    assert "eis a revelação" in res.output
+    assert visto["economico"] is True
+
+
+def test_servir_aceita_host(tmp_path, monkeypatch):
+    from click.testing import CliRunner
+
+    from poimandres import cli as cli_mod
+    from poimandres.corpus.embeddings import FakeEmbeddings
+    from poimandres.pipeline import fabrica
+
+    capturado = {}
+
+    import poimandres.web as web_mod
+
+    monkeypatch.setattr(cli_mod, "_fazer_embeddings", lambda: FakeEmbeddings())
+    monkeypatch.setattr(fabrica, "montar_por_ambiente", lambda **kw: object())
+    monkeypatch.setattr(web_mod, "criar_app", lambda oraculo: "APP")
+
+    def fake_run(app, host, port):
+        capturado["host"] = host
+        capturado["port"] = port
+
+    import uvicorn
+
+    monkeypatch.setattr(uvicorn, "run", fake_run)
+
+    res = CliRunner().invoke(
+        cli_mod.cli,
+        ["servir", "--host", "0.0.0.0", "--porta", "9999", "--db", str(tmp_path / "c.lance")],
+    )
+    assert res.exit_code == 0, res.output
+    assert capturado == {"host": "0.0.0.0", "port": 9999}
